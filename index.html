@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Gmail Alias Generator</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body class="min-h-screen p-4 relative overflow-x-hidden">
+  <!-- Gmail Alias Info Popup -->
+  <div id="aliasInfoPopup" class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 hidden">
+    <div class="bg-gradient-to-br from-indigo-700 to-purple-800 rounded-2xl shadow-2xl p-8 max-w-lg w-full relative animate-fade-in">
+      <button onclick="document.getElementById('aliasInfoPopup').classList.add('hidden')" class="absolute top-4 right-4 text-white text-2xl hover:text-red-400 transition-all">&times;</button>
+      <h2 class="text-2xl font-bold text-white mb-4 flex items-center"><span class="mr-2">ℹ️</span>What is a Gmail Alias?</h2>
+      <div class="text-gray-200 space-y-3 text-base">
+        <p><b>Gmail aliases</b> are alternative email addresses you can create using your main Gmail account, without registering new accounts. They help you organize, filter, and protect your inbox.</p>
+        <ul class="list-disc pl-6 space-y-1">
+          <li><b>+ Aliases:</b> Add "+keyword" after your username (e.g., <span class="font-mono">yourname+shopping@gmail.com</span>) to track signups or filter emails.</li>
+          <li><b>Dot Variants:</b> Gmail ignores dots in usernames (<span class="font-mono">your.name@gmail.com</span> = <span class="font-mono">yourname@gmail.com</span>).</li>
+          <li><b>Random Aliases:</b> Generate unique addresses for privacy or temporary use.</li>
+        </ul>
+        <p><b>Uses:</b> Manage newsletters, signups, work, shopping, and protect your main address from spam. Easily filter or search emails by alias.</p>
+      </div>
+      <div class="mt-6 text-center">
+        <button onclick="document.getElementById('aliasInfoPopup').classList.add('hidden')" class="px-6 py-2 rounded-lg bg-gradient-to-r from-indigo-500 to-purple-500 text-white font-medium shadow-lg hover:scale-105 transition-all">Got it!</button>
+      </div>
+    </div>
+  </div>
+  <!-- Floating Background Orbs -->
+  <div class="floating-orb orb-1"></div>
+  <div class="floating-orb orb-2"></div>
+  <div class="floating-orb orb-3"></div>
+  
+  <!-- Main Container -->
+  <div class="min-h-screen p-4 lg:p-8">
+    <div class="max-w-7xl mx-auto fade-in relative z-10">
+      <!-- Header -->
+      <div class="text-center mb-8">
+        <button onclick="document.getElementById('aliasInfoPopup').classList.remove('hidden')" class="absolute top-6 right-6 bg-gradient-to-r from-indigo-500 to-purple-500 text-white px-4 py-2 rounded-lg shadow-lg hover:scale-105 transition-all z-20">
+          What is Gmail Alias?
+        </button>
+        <h1 class="text-4xl lg:text-6xl font-bold text-white glow-text mb-4">Gmail Alias Generator</h1>
+        <p class="text-gray-300 text-lg lg:text-xl">Create unlimited email aliases for your Gmail account with advanced features</p>
+      </div>
+
+      <!-- Tab Navigation -->
+      <div class="flex justify-center mb-8">
+        <div class="bg-white/5 backdrop-blur-lg p-2 rounded-2xl border border-white/10">
+          <button class="tab-button px-8 py-3 rounded-xl font-medium text-white bg-gradient-to-r from-indigo-500 to-purple-500 focus:outline-none shadow-lg" data-tab="generator">
+            🚀 Generator
+          </button>
+          <button class="tab-button px-8 py-3 rounded-xl font-medium text-white bg-transparent hover:bg-white/10 ml-2 focus:outline-none" data-tab="results">
+            📊 Results
+          </button>
+          <button class="tab-button px-8 py-3 rounded-xl font-medium text-white bg-transparent hover:bg-white/10 ml-2 focus:outline-none" data-tab="history">
+            📚 History
+          </button>
+        </div>
+      </div>
+
+      <!-- Grid Layout -->
+      <div class="grid-layout">
+        <!-- Left Sidebar - Stats & Features -->
+        <div class="space-y-6">
+          <!-- Stats Cards -->
+          <div class="stats-card">
+            <div class="animated-bg"></div>
+            <h3 class="text-lg font-semibold text-white mb-2">🎯 Quick Stats</h3>
+            <div class="space-y-2 text-sm">
+              <div class="flex justify-between text-gray-300">
+                <span>Total Generated:</span>
+                <span id="totalGenerated">0</span>
+              </div>
+              <div class="flex justify-between text-gray-300">
+                <span>History Entries:</span>
+                <span id="historyCount">0</span>
+              </div>
+              <div class="flex justify-between text-gray-300">
+                <span>Starred Aliases:</span>
+                <span id="starredCount">0</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Feature Cards -->
+          <div class="feature-card">
+            <div class="text-4xl mb-3">⚡</div>
+            <h4 class="text-white font-semibold mb-2">Lightning Fast</h4>
+            <p class="text-gray-400 text-sm">Generate hundreds of aliases instantly</p>
+          </div>
+
+          <div class="feature-card">
+            <div class="text-4xl mb-3">🛡️</div>
+            <h4 class="text-white font-semibold mb-2">Privacy First</h4>
+            <p class="text-gray-400 text-sm">All data stored locally on your device</p>
+          </div>
+
+          <div class="feature-card">
+            <div class="text-4xl mb-3">📱</div>
+            <h4 class="text-white font-semibold mb-2">Responsive</h4>
+            <p class="text-gray-400 text-sm">Works perfectly on all devices</p>
+          </div>
+        </div>
+
+        <!-- Main Content Area -->
+        <div class="space-y-6">
+          <!-- Main Generator Tab -->
+          <div id="tab-generator" class="tab-section">
+            <div class="glass-container rounded-3xl p-8 space-y-8">
+              <div class="text-center space-y-4">
+                <div class="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-full mb-4">
+                  <span class="text-3xl">✉️</span>
+                </div>
+                <h2 class="text-2xl font-bold text-white">Email Configuration</h2>
+                <p class="text-gray-300">Configure your Gmail address and alias preferences</p>
+              </div>
+              
+              <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div class="space-y-6">
+                  <div class="space-y-3">
+                    <label class="block font-medium text-gray-200">Your Gmail Address</label>
+                    <input 
+                      id="baseEmail" 
+                      type="email" 
+                      placeholder="yourname@gmail.com" 
+                      class="w-full p-4 glass-input rounded-xl text-white placeholder-gray-400"
+                    />
+                    <div id="emailValidation" class="text-sm hidden"></div>
+                  </div>
+
+                  <div class="space-y-3">
+                    <label class="block font-medium text-gray-200">Custom Keywords</label>
+                    <input 
+                      id="customKeywords" 
+                      type="text" 
+                      placeholder="newsletter, shopping, work, temp, signup" 
+                      class="w-full p-4 glass-input rounded-xl text-white placeholder-gray-400"
+                    />
+                    <p class="text-gray-400 text-sm">Add your own keywords for + aliases (comma separated)</p>
+                  </div>
+                </div>
+
+                <div class="space-y-6">
+                  <div class="space-y-4">
+                    <h3 class="font-medium text-gray-200">Alias Types</h3>
+                    <div class="space-y-3">
+                      <label class="flex items-center space-x-3 cursor-pointer group p-3 rounded-lg hover:bg-white/5 transition-all">
+                        <input type="checkbox" id="plusAlias" class="checkbox-custom" />
+                        <div>
+                          <span class="text-gray-200 font-medium group-hover:text-white transition-colors">+ Keyword Aliases</span>
+                          <p class="text-gray-400 text-sm">Uses + notation with keywords</p>
+                        </div>
+                      </label>
+                      
+                      <label class="flex items-center space-x-3 cursor-pointer group p-3 rounded-lg hover:bg-white/5 transition-all">
+                        <input type="checkbox" id="dotAlias" class="checkbox-custom" />
+                        <div>
+                          <span class="text-gray-200 font-medium group-hover:text-white transition-colors">Dot Variants</span>
+                          <p class="text-gray-400 text-sm">Adds dots between characters</p>
+                        </div>
+                      </label>
+                      
+                      <label class="flex items-center space-x-3 cursor-pointer group p-3 rounded-lg hover:bg-white/5 transition-all">
+                        <input type="checkbox" id="randomAlias" class="checkbox-custom" />
+                        <div>
+                          <span class="text-gray-200 font-medium group-hover:text-white transition-colors">+ Random Words</span>
+                          <p class="text-gray-400 text-sm">Generates random identifiers</p>
+                        </div>
+                      </label>
+                    </div>
+                  </div>
+                  
+                  <div class="space-y-3">
+                    <label class="block text-gray-200 font-medium">Number of Aliases</label>
+                    <input 
+                      id="aliasCount" 
+                      type="number" 
+                      value="5" 
+                      min="1" 
+                      max="50"
+                      class="w-full p-4 glass-input rounded-xl text-white"
+                    />
+                  </div>
+                </div>
+              </div>
+              
+              <button 
+                onclick="generateAliases()" 
+                class="w-full glass-button text-white py-5 rounded-xl font-medium text-lg pulse-glow flex items-center justify-center space-x-2"
+              >
+                <span>🎯</span>
+                <span>Generate Aliases</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Results Tab -->
+          <div id="tab-results" class="tab-section hidden">
+            <div id="resultsSection" class="glass-container rounded-3xl p-8 space-y-8">
+              <!-- Enhanced Summary -->
+              <div id="aliasSummary" class="text-center space-y-4">
+                <div class="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-r from-green-500 to-blue-500 rounded-full mb-4">
+                  <span class="text-3xl">🎉</span>
+                </div>
+                <h3 class="text-2xl font-semibold text-white">Generated Aliases</h3>
+                <div id="summaryBreakdown" class="text-gray-300"></div>
+              </div>
+
+              <!-- Enhanced Filter Controls -->
+              <div class="flex flex-wrap gap-3 justify-center">
+                <button class="filter-button active" data-filter="all">🌟 All</button>
+                <button class="filter-button" data-filter="plus">➕ Keywords</button>
+                <button class="filter-button" data-filter="dot">🔘 Dot Variants</button>
+                <button class="filter-button" data-filter="random">🎲 Random</button>
+                <button class="filter-button" data-filter="starred">⭐ Starred</button>
+              </div>
+
+              <!-- Aliases List with enhanced styling -->
+              <div id="aliasesList" class="space-y-3 max-h-96 overflow-y-auto scroll-container"></div>
+
+              <!-- Enhanced Action Buttons -->
+              <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <button 
+                  onclick="copyAllAliases()" 
+                  class="glass-button glass-secondary text-white py-4 rounded-xl font-medium flex items-center justify-center space-x-2"
+                >
+                  <span>📋</span>
+                  <span>Copy All</span>
+                </button>
+                <button 
+                  onclick="exportToFile('txt')" 
+                  class="glass-button glass-orange text-white py-4 rounded-xl font-medium flex items-center justify-center space-x-2"
+                >
+                  <span>📄</span>
+                  <span>Export TXT</span>
+                </button>
+                <button 
+                  onclick="exportToFile('csv')" 
+                  class="glass-button glass-orange text-white py-4 rounded-xl font-medium flex items-center justify-center space-x-2"
+                >
+                  <span>📊</span>
+                  <span>Export CSV</span>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- History Tab -->
+          <div id="tab-history" class="tab-section hidden">
+            <div class="glass-container rounded-3xl p-8 space-y-6">
+              <div class="text-center space-y-4">
+                <div class="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full mb-4">
+                  <span class="text-3xl">📚</span>
+                </div>
+                <h3 class="text-2xl font-semibold text-white">Recent History</h3>
+                <p class="text-gray-300">Your previously generated aliases</p>
+              </div>
+              <div id="historyList" class="space-y-3 max-h-96 overflow-y-auto scroll-container">
+                <p class="text-gray-400 text-center py-8">No recent aliases</p>
+              </div>
+              <div class="text-center">
+                <button onclick="clearHistory()" class="text-red-400 hover:text-red-300 px-6 py-2 rounded-lg hover:bg-red-500/10 transition-all">
+                  🗑️ Clear History
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right Sidebar - Quick Actions & Tips -->
+        <div class="space-y-6">
+          <!-- Quick Actions -->
+          <div class="glass-container rounded-2xl p-6">
+            <h3 class="text-lg font-semibold text-white mb-4 flex items-center">
+              <span class="mr-2">⚡</span>
+              Quick Actions
+            </h3>
+            <div class="space-y-3">
+              <button class="w-full glass-button text-white py-3 rounded-lg text-sm flex items-center justify-center space-x-2" onclick="quickGenerate('work')">
+                <span>💼</span>
+                <span>Work Aliases</span>
+              </button>
+              <button class="w-full glass-button text-white py-3 rounded-lg text-sm flex items-center justify-center space-x-2" onclick="quickGenerate('shopping')">
+                <span>🛒</span>
+                <span>Shopping Aliases</span>
+              </button>
+              <button class="w-full glass-button text-white py-3 rounded-lg text-sm flex items-center justify-center space-x-2" onclick="quickGenerate('temp')">
+                <span>⏰</span>
+                <span>Temporary Aliases</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Tips & Tricks -->
+          <div class="glass-container rounded-2xl p-6">
+            <h3 class="text-lg font-semibold text-white mb-4 flex items-center">
+              <span class="mr-2">💡</span>
+              Pro Tips
+            </h3>
+            <div class="space-y-4 text-sm text-gray-300">
+              <div class="flex space-x-3">
+                <span class="text-blue-400">📌</span>
+                <div>
+                  <p class="font-medium text-white">Use + aliases</p>
+                  <p>Perfect for newsletters and signups</p>
+                </div>
+              </div>
+              <div class="flex space-x-3">
+                <span class="text-green-400">📌</span>
+                <div>
+                  <p class="font-medium text-white">Star important ones</p>
+                  <p>Keep track of your favorites</p>
+                </div>
+              </div>
+              <div class="flex space-x-3">
+                <span class="text-purple-400">📌</span>
+                <div>
+                  <p class="font-medium text-white">Export for backup</p>
+                  <p>Save your aliases as files</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Usage Analytics -->
+          <div class="glass-container rounded-2xl p-6">
+            <h3 class="text-lg font-semibold text-white mb-4 flex items-center">
+              <span class="mr-2">📈</span>
+              Usage Stats
+            </h3>
+            <div class="space-y-3">
+              <div class="flex justify-between items-center">
+                <span class="text-gray-300 text-sm">Most Used Type:</span>
+                <span class="text-white text-sm font-medium" id="mostUsedType">+ Keywords</span>
+              </div>
+              <div class="flex justify-between items-center">
+                <span class="text-gray-300 text-sm">Average Per Session:</span>
+                <span class="text-white text-sm font-medium" id="avgPerSession">5</span>
+              </div>
+              <div class="flex justify-between items-center">
+                <span class="text-gray-300 text-sm">Sessions Today:</span>
+                <span class="text-white text-sm font-medium" id="sessionsToday">1</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <script src="script.js"></script>
+</body>
+<script>
+  // Show Gmail Alias info popup on first load or refresh
+  window.addEventListener('DOMContentLoaded', function() {
+    document.getElementById('aliasInfoPopup').classList.remove('hidden');
+  });
+</script>
+  <footer style="width:100%;text-align:center;padding:1.5rem 0;color:#fff;background:rgba(40,40,60,0.7);font-size:1rem;position:fixed;bottom:0;left:0;z-index:50;backdrop-filter:blur(6px);">
+    Developed with ❤️ by Rukshan Tharindu &mdash; 
+    <a href="mailto:rukshantharindu582@gmail.com" style="color:#aaf;text-decoration:underline;">rukshantharindu582@gmail.com</a> &bull; 
+    <a href="tel:+94779054385" style="color:#aaf;text-decoration:underline;">+94779054385</a>
+  </footer>
+</body>
+</html>
