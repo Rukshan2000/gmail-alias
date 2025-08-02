@@ -12,55 +12,6 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/mousetrap/1.6.5/mousetrap.min.js"></script>
   <!-- TensorFlow.js for AI features -->
   <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.15.0/dist/tf.min.js"></script>
-  <style>
-    /* Learn Modal Tab Styles */
-    .learn-tab-btn {
-      transition: all 0.3s ease;
-    }
-    
-    .learn-tab-btn:not(.active) {
-      color: #d1d5db;
-    }
-    
-    .learn-tab-btn:not(.active):hover {
-      color: white;
-      background-color: rgba(255, 255, 255, 0.1);
-    }
-    
-    .learn-tab-btn.active {
-      background-color: rgba(255, 255, 255, 0.2);
-      color: white;
-      font-weight: 600;
-    }
-    
-    .learn-tab-content {
-      animation: fadeIn 0.3s ease-in-out;
-    }
-    
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(10px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-    
-    /* Custom scrollbar for learn modal */
-    .learn-content::-webkit-scrollbar {
-      width: 6px;
-    }
-    
-    .learn-content::-webkit-scrollbar-track {
-      background: rgba(255, 255, 255, 0.1);
-      border-radius: 3px;
-    }
-    
-    .learn-content::-webkit-scrollbar-thumb {
-      background: rgba(255, 255, 255, 0.3);
-      border-radius: 3px;
-    }
-    
-    .learn-content::-webkit-scrollbar-thumb:hover {
-      background: rgba(255, 255, 255, 0.5);
-    }
-  </style>
 </head>
 <body class="min-h-screen p-4 relative overflow-x-hidden">
   <!-- Gmail Alias Info Popup (Simplified) -->
@@ -508,6 +459,52 @@
       </div>
     </div>
   </div>
+
+  <!-- Confirmation Modal -->
+  <div id="confirmationModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/70 hidden">
+    <div class="bg-gradient-to-br from-slate-800 to-slate-900 rounded-2xl shadow-2xl max-w-md w-full mx-4 animate-fade-in">
+      <div class="p-6">
+        <div class="flex items-center justify-between mb-4">
+          <h3 class="text-xl font-bold text-white">Confirm Action</h3>
+          <button onclick="closeConfirmationModal()" class="text-gray-400 hover:text-red-400 transition-all text-2xl">
+            &times;
+          </button>
+        </div>
+        
+        <div class="mb-6">
+          <div class="flex items-center mb-4">
+            <div class="w-12 h-12 bg-red-500/20 rounded-full flex items-center justify-center mr-4">
+              <i class="fa-solid fa-trash text-red-400 text-xl"></i>
+            </div>
+            <div>
+              <h4 class="text-white font-semibold" id="confirmationTitle">Clear All Data</h4>
+              <p class="text-gray-400 text-sm" id="confirmationMessage">This will remove history, settings, statistics, and preferences.</p>
+            </div>
+          </div>
+          
+          <div class="bg-red-500/10 border border-red-500/30 rounded-lg p-4 mb-4">
+            <p class="text-red-300 text-sm">
+              <i class="fa-solid fa-exclamation-triangle mr-2"></i>
+              This action cannot be undone. All your data will be permanently deleted.
+            </p>
+          </div>
+        </div>
+        
+        <div class="flex space-x-3">
+          <button onclick="closeConfirmationModal()" 
+                  class="flex-1 px-4 py-3 rounded-lg bg-gray-600 hover:bg-gray-500 text-white font-medium transition-all">
+            Cancel
+          </button>
+          <button onclick="confirmAction()" 
+                  class="flex-1 px-4 py-3 rounded-lg bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white font-medium transition-all">
+            <i class="fa-solid fa-trash mr-2"></i>
+            Clear All Data
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- Floating Background Orbs -->
   <div class="floating-orb orb-1"></div>
   <div class="floating-orb orb-2"></div>
@@ -807,7 +804,7 @@
               </div>
               <div class="text-center">
                 <button onclick="clearHistory()" class="text-red-400 hover:text-red-300 px-6 py-2 rounded-lg hover:bg-red-500/10 transition-all">
-                  <i class="fa-solid fa-trash"></i> Clear History
+                  <i class="fa-solid fa-trash"></i> Clear All Data
                 </button>
               </div>
             </div>
@@ -896,356 +893,7 @@
   </div>
   
   <script src="script.js"></script>
-  <script>
-    // AI Features Implementation
-    let aiEnabled = false;
-    let spamDetectionModel = null;
-    let intentClassificationModel = null;
-
-    // Initialize AI models
-    async function initializeAI() {
-      if (!aiEnabled) return;
-      
-      try {
-        console.log('🧠 Initializing AI models...');
-        
-        // Simple spam detection model (lightweight)
-        spamDetectionModel = tf.sequential({
-          layers: [
-            tf.layers.dense({ units: 16, activation: 'relu', inputShape: [10] }),
-            tf.layers.dense({ units: 8, activation: 'relu' }),
-            tf.layers.dense({ units: 1, activation: 'sigmoid' })
-          ]
-        });
-        
-        // Intent classification model
-        intentClassificationModel = tf.sequential({
-          layers: [
-            tf.layers.dense({ units: 20, activation: 'relu', inputShape: [15] }),
-            tf.layers.dense({ units: 10, activation: 'relu' }),
-            tf.layers.dense({ units: 4, activation: 'softmax' }) // work, shopping, temp, personal
-          ]
-        });
-        
-        console.log('✅ AI models initialized successfully');
-        showNotification('🧠 AI features enabled! Smart analysis active.', 'success');
-      } catch (error) {
-        console.error('❌ AI initialization failed:', error);
-        showNotification('⚠️ AI features unavailable in this browser', 'error');
-      }
-    }
-
-    // Toggle AI features
-    function toggleAI() {
-      aiEnabled = !aiEnabled;
-      if (aiEnabled) {
-        initializeAI();
-        localStorage.setItem('aiEnabled', 'true');
-      } else {
-        localStorage.setItem('aiEnabled', 'false');
-        showNotification('🔄 AI features disabled', 'success');
-      }
-    }
-
-    // AI-powered spam detection
-    function detectSpamAlias(alias) {
-      if (!aiEnabled || !spamDetectionModel) return { isSpam: false, confidence: 0 };
-      
-      try {
-        // Extract features (simplified)
-        const features = [
-          alias.length / 50, // normalized length
-          (alias.match(/\d/g) || []).length / alias.length, // digit ratio
-          (alias.match(/[A-Z]/g) || []).length / alias.length, // uppercase ratio
-          (alias.match(/[!@#$%^&*()]/g) || []).length / alias.length, // special chars
-          alias.includes('+') ? 1 : 0,
-          alias.includes('.') ? 1 : 0,
-          (alias.match(/(.)\1{2,}/g) || []).length, // repeated chars
-          alias.split('+').length - 1, // plus count
-          alias.split('.').length - 1, // dot count
-          Math.random() * 0.1 // noise factor
-        ];
-        
-        const prediction = spamDetectionModel.predict(tf.tensor2d([features]));
-        const confidence = prediction.dataSync()[0];
-        
-        return {
-          isSpam: confidence > 0.7,
-          confidence: confidence,
-          riskLevel: confidence > 0.8 ? 'high' : confidence > 0.5 ? 'medium' : 'low'
-        };
-      } catch (error) {
-        console.error('Spam detection error:', error);
-        return { isSpam: false, confidence: 0 };
-      }
-    }
-
-    // AI-powered intent classification
-    function classifyIntent(alias, keywords = '') {
-      if (!aiEnabled || !intentClassificationModel) return { intent: 'unknown', confidence: 0 };
-      
-      try {
-        const categories = ['work', 'shopping', 'temp', 'personal'];
-        const text = (alias + ' ' + keywords).toLowerCase();
-        
-        // Extract features
-        const features = [
-          text.includes('work') || text.includes('business') || text.includes('corporate') ? 1 : 0,
-          text.includes('shop') || text.includes('buy') || text.includes('purchase') ? 1 : 0,
-          text.includes('temp') || text.includes('test') || text.includes('trial') ? 1 : 0,
-          text.includes('personal') || text.includes('private') ? 1 : 0,
-          text.includes('newsletter') || text.includes('news') ? 1 : 0,
-          text.includes('social') || text.includes('media') ? 1 : 0,
-          text.includes('finance') || text.includes('bank') ? 1 : 0,
-          text.includes('gaming') || text.includes('game') ? 1 : 0,
-          alias.length / 30,
-          (text.match(/\+/g) || []).length,
-          (text.match(/\./g) || []).length,
-          Math.random() * 0.1,
-          Math.random() * 0.1,
-          Math.random() * 0.1,
-          Math.random() * 0.1
-        ];
-        
-        const prediction = intentClassificationModel.predict(tf.tensor2d([features]));
-        const probabilities = prediction.dataSync();
-        const maxIndex = probabilities.indexOf(Math.max(...probabilities));
-        
-        return {
-          intent: categories[maxIndex],
-          confidence: probabilities[maxIndex],
-          breakdown: categories.map((cat, i) => ({ category: cat, probability: probabilities[i] }))
-        };
-      } catch (error) {
-        console.error('Intent classification error:', error);
-        return { intent: 'unknown', confidence: 0 };
-      }
-    }
-
-    // Enhanced alias generation with AI
-    function generateAliasesWithAI() {
-      if (!aiEnabled) {
-        generateAliases();
-        return;
-      }
-      
-      generateAliases();
-      
-      // Add AI analysis to generated aliases
-      setTimeout(() => {
-        if (currentAliases && currentAliases.length > 0) {
-          currentAliases.forEach((alias, index) => {
-            const spamAnalysis = detectSpamAlias(alias.email);
-            const intentAnalysis = classifyIntent(alias.email, document.getElementById('customKeywords').value);
-            
-            alias.aiAnalysis = {
-              spam: spamAnalysis,
-              intent: intentAnalysis,
-              riskScore: spamAnalysis.confidence * 100
-            };
-          });
-          
-          displayAliases();
-          showAIInsights();
-        }
-      }, 500);
-    }
-
-    // Display AI insights
-    function showAIInsights() {
-      if (!aiEnabled || !currentAliases.length) return;
-      
-      const highRiskAliases = currentAliases.filter(a => a.aiAnalysis && a.aiAnalysis.spam.riskLevel === 'high').length;
-      const intents = currentAliases.map(a => a.aiAnalysis?.intent.intent).filter(Boolean);
-      const mostCommonIntent = intents.length > 0 ? intents.reduce((a, b, i, arr) => 
-        arr.filter(v => v === a).length >= arr.filter(v => v === b).length ? a : b
-      ) : 'unknown';
-      
-      if (highRiskAliases > 0) {
-        showNotification(`⚠️ AI detected ${highRiskAliases} potentially risky aliases`, 'error');
-      }
-      
-      if (mostCommonIntent !== 'unknown') {
-        showNotification(`🎯 AI classified most aliases as: ${mostCommonIntent}`, 'success');
-      }
-    }
-
-    // Toggle AI features function
-    function toggleAIFeatures() {
-      toggleAI();
-      document.getElementById('aliasInfoPopup').classList.add('hidden');
-    }
-
-    // Load AI preference on startup
-    document.addEventListener('DOMContentLoaded', () => {
-      if (localStorage.getItem('aiEnabled') === 'true') {
-        aiEnabled = true;
-        setTimeout(initializeAI, 1000);
-      }
-    });
-
-    // Learn Modal functions
-    function openLearnModal() {
-      document.getElementById('aliasInfoPopup').classList.add('hidden');
-      document.getElementById('learnModal').classList.remove('hidden');
-    }
-
-    // Tab switching for learn modal
-    function switchLearnTab(tabName) {
-      // Hide all tab contents
-      document.querySelectorAll('.learn-section').forEach(content => {
-        content.classList.add('hidden');
-      });
-      
-      // Remove active class from all tab buttons
-      document.querySelectorAll('.learn-nav-button').forEach(btn => {
-        btn.classList.remove('active');
-        btn.classList.remove('bg-white/20', 'text-white');
-        btn.classList.add('text-gray-300', 'hover:text-white', 'hover:bg-white/10');
-      });
-      
-      // Show selected tab content
-      document.getElementById('learn-' + tabName).classList.remove('hidden');
-      
-      // Add active class to selected tab button
-      const activeBtn = document.querySelector(`[data-section="${tabName}"]`);
-      if (activeBtn) {
-        activeBtn.classList.add('active', 'bg-white/20', 'text-white');
-        activeBtn.classList.remove('text-gray-300', 'hover:text-white', 'hover:bg-white/10');
-      }
-    }
-
-    // Initialize learn modal tab functionality
-    document.addEventListener('DOMContentLoaded', function() {
-      // Add click listeners to learn tab buttons
-      document.querySelectorAll('.learn-nav-button').forEach(btn => {
-        btn.addEventListener('click', function() {
-          const tabName = this.getAttribute('data-section');
-          switchLearnTab(tabName);
-        });
-      });
-      
-      // Initialize first tab as active
-      switchLearnTab('basics');
-    });
-
-    // Keyboard shortcuts implementation
-    document.addEventListener('DOMContentLoaded', function() {
-      // Tab switching shortcuts
-      Mousetrap.bind('1', function() {
-        switchTab('generator');
-        return false;
-      });
-      
-      Mousetrap.bind('2', function() {
-        switchTab('results');
-        return false;
-      });
-      
-      Mousetrap.bind('3', function() {
-        switchTab('history');
-        return false;
-      });
-      
-      // Generate aliases with AI
-      Mousetrap.bind('g', function() {
-        if (document.getElementById('baseEmail').value.trim()) {
-          if (aiEnabled) {
-            generateAliasesWithAI();
-          } else {
-            generateAliases();
-          }
-        } else {
-          document.getElementById('baseEmail').focus();
-        }
-        return false;
-      });
-      
-      // Copy all aliases
-      Mousetrap.bind('ctrl+c', function() {
-        if (currentAliases && currentAliases.length > 0) {
-          copyAllAliases();
-        }
-        return false;
-      });
-      
-      // Quick generation shortcuts
-      Mousetrap.bind('w', function() {
-        quickGenerate('work');
-        return false;
-      });
-      
-      Mousetrap.bind('s', function() {
-        quickGenerate('shopping');
-        return false;
-      });
-      
-      Mousetrap.bind('t', function() {
-        quickGenerate('temp');
-        return false;
-      });
-      
-      // Clear history
-      Mousetrap.bind('del', function() {
-        clearHistory();
-        return false;
-      });
-      
-      // Close popup
-      Mousetrap.bind('escape', function() {
-        document.getElementById('aliasInfoPopup').classList.add('hidden');
-        return false;
-      });
-      
-      // Help shortcut to show popup
-      Mousetrap.bind('?', function() {
-        document.getElementById('aliasInfoPopup').classList.remove('hidden');
-        return false;
-      });
-
-      // Toggle AI features
-      Mousetrap.bind('a', function() {
-        toggleAI();
-        return false;
-      });
-    });
-
-    // Burger menu and drawer logic for mobile
-    document.addEventListener('DOMContentLoaded', function() {
-      const burgerBtn = document.getElementById('burgerMenuBtn');
-      const drawer = document.getElementById('mobileDrawer');
-      const closeBtn = document.getElementById('closeDrawerBtn');
-      const overlay = document.getElementById('drawerOverlay');
-      const tabButtons = drawer.querySelectorAll('.tab-button');
-
-      function openDrawer() {
-        drawer.classList.remove('-translate-x-full');
-        overlay.classList.remove('hidden');
-      }
-      function closeDrawer() {
-        drawer.classList.add('-translate-x-full');
-        overlay.classList.add('hidden');
-      }
-      burgerBtn && burgerBtn.addEventListener('click', openDrawer);
-      closeBtn && closeBtn.addEventListener('click', closeDrawer);
-      overlay && overlay.addEventListener('click', closeDrawer);
-
-      tabButtons.forEach(btn => {
-        btn.addEventListener('click', () => {
-          closeDrawer();
-        });
-      });
-    });
-  </script>
 </body>
-<script>
-
-    
-  // Show Gmail Alias info popup on first load or refresh
-  window.addEventListener('DOMContentLoaded', function() {
-    document.getElementById('aliasInfoPopup').classList.remove('hidden');
-  });
-</script>
   <footer style="width:100%;text-align:center;padding:1.5rem 0;color:#fff;background:rgba(40,40,60,0.7);font-size:1rem;position:fixed;bottom:0;left:0;z-index:50;backdrop-filter:blur(6px);">
     Developed with ❤️ by Rukshan Tharindu &mdash; 
     <a href="mailto:rukshantharindu582@gmail.com" style="color:#aaf;text-decoration:underline;">rukshantharindu582@gmail.com</a> &bull; 

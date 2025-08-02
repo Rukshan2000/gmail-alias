@@ -521,11 +521,52 @@ function loadFromHistory(id) {
 }
 
 function clearHistory() {
-  if (confirm('Clear all history?')) {
-    localStorage.removeItem('gmailAliasHistory');
-    loadHistory();
-    showNotification('✅ History cleared!', 'success');
-  }
+  showConfirmationModal(
+    'Clear All Data',
+    'This will remove history, settings, statistics, and preferences.',
+    () => {
+      // Clear all localStorage data
+      localStorage.removeItem('gmailAliasHistory');
+      localStorage.removeItem('gmailAliasSettings');
+      localStorage.removeItem('totalGenerated');
+      localStorage.removeItem('aiEnabled');
+      
+      // Reset current state
+      currentAliases = [];
+      starredAliases = new Set();
+      
+      // Reload and reset UI
+      loadHistory();
+      loadSettings();
+      updateStats();
+      
+      // Clear current results
+      const aliasesContainer = document.getElementById('aliasesList');
+      if (aliasesContainer) {
+        aliasesContainer.innerHTML = '';
+      }
+      
+      // Reset form to defaults
+      document.getElementById('baseEmail').value = '';
+      document.getElementById('customKeywords').value = '';
+      document.getElementById('aliasCount').value = '10';
+      document.getElementById('plusAlias').checked = true;
+      document.getElementById('dotAlias').checked = false;
+      document.getElementById('randomAlias').checked = false;
+      
+      // Switch back to generator tab
+      document.querySelectorAll('.tab-section').forEach(s => s.classList.add('hidden'));
+      document.getElementById('tab-generator').classList.remove('hidden');
+      document.querySelectorAll('.tab-button').forEach(btn => {
+        btn.classList.remove('active');
+        if (btn.dataset.tab === 'generator') {
+          btn.classList.add('active');
+        }
+      });
+      
+      showNotification('🗑️ All data cleared successfully!', 'success');
+    }
+  );
 }
 
 function showNotification(message, type) {
@@ -546,6 +587,28 @@ function showNotification(message, type) {
     notification.style.transform = 'translateX(400px)';
     setTimeout(() => notification.remove(), 300);
   }, 3000);
+}
+
+// Confirmation Modal Functions
+let confirmationCallback = null;
+
+function showConfirmationModal(title, message, callback) {
+  document.getElementById('confirmationTitle').textContent = title;
+  document.getElementById('confirmationMessage').textContent = message;
+  confirmationCallback = callback;
+  document.getElementById('confirmationModal').classList.remove('hidden');
+}
+
+function closeConfirmationModal() {
+  document.getElementById('confirmationModal').classList.add('hidden');
+  confirmationCallback = null;
+}
+
+function confirmAction() {
+  if (confirmationCallback) {
+    confirmationCallback();
+  }
+  closeConfirmationModal();
 }
 
 // Interactive effects
@@ -571,4 +634,354 @@ document.addEventListener('DOMContentLoaded', () => {
   
   if (aliasCountInput) aliasCountInput.addEventListener('change', saveSettings);
   if (customKeywordsInput) customKeywordsInput.addEventListener('input', saveSettings);
+});
+
+// AI Features Implementation
+let aiEnabled = false;
+let spamDetectionModel = null;
+let intentClassificationModel = null;
+
+// Initialize AI models
+async function initializeAI() {
+  if (!aiEnabled) return;
+  
+  try {
+    console.log('🧠 Initializing AI models...');
+    
+    // Simple spam detection model (lightweight)
+    spamDetectionModel = tf.sequential({
+      layers: [
+        tf.layers.dense({ units: 16, activation: 'relu', inputShape: [10] }),
+        tf.layers.dense({ units: 8, activation: 'relu' }),
+        tf.layers.dense({ units: 1, activation: 'sigmoid' })
+      ]
+    });
+    
+    // Intent classification model
+    intentClassificationModel = tf.sequential({
+      layers: [
+        tf.layers.dense({ units: 20, activation: 'relu', inputShape: [15] }),
+        tf.layers.dense({ units: 10, activation: 'relu' }),
+        tf.layers.dense({ units: 4, activation: 'softmax' }) // work, shopping, temp, personal
+      ]
+    });
+    
+    console.log('✅ AI models initialized successfully');
+    showNotification('🧠 AI features enabled! Smart analysis active.', 'success');
+  } catch (error) {
+    console.error('❌ AI initialization failed:', error);
+    showNotification('⚠️ AI features unavailable in this browser', 'error');
+  }
+}
+
+// Toggle AI features
+function toggleAI() {
+  aiEnabled = !aiEnabled;
+  if (aiEnabled) {
+    initializeAI();
+    localStorage.setItem('aiEnabled', 'true');
+  } else {
+    localStorage.setItem('aiEnabled', 'false');
+    showNotification('🔄 AI features disabled', 'success');
+  }
+}
+
+// AI-powered spam detection
+function detectSpamAlias(alias) {
+  if (!aiEnabled || !spamDetectionModel) return { isSpam: false, confidence: 0 };
+  
+  try {
+    // Extract features (simplified)
+    const features = [
+      alias.length / 50, // normalized length
+      (alias.match(/\d/g) || []).length / alias.length, // digit ratio
+      (alias.match(/[A-Z]/g) || []).length / alias.length, // uppercase ratio
+      (alias.match(/[!@#$%^&*()]/g) || []).length / alias.length, // special chars
+      alias.includes('+') ? 1 : 0,
+      alias.includes('.') ? 1 : 0,
+      (alias.match(/(.)\1{2,}/g) || []).length, // repeated chars
+      alias.split('+').length - 1, // plus count
+      alias.split('.').length - 1, // dot count
+      Math.random() * 0.1 // noise factor
+    ];
+    
+    const prediction = spamDetectionModel.predict(tf.tensor2d([features]));
+    const confidence = prediction.dataSync()[0];
+    
+    return {
+      isSpam: confidence > 0.7,
+      confidence: confidence,
+      riskLevel: confidence > 0.8 ? 'high' : confidence > 0.5 ? 'medium' : 'low'
+    };
+  } catch (error) {
+    console.error('Spam detection error:', error);
+    return { isSpam: false, confidence: 0 };
+  }
+}
+
+// AI-powered intent classification
+function classifyIntent(alias, keywords = '') {
+  if (!aiEnabled || !intentClassificationModel) return { intent: 'unknown', confidence: 0 };
+  
+  try {
+    const categories = ['work', 'shopping', 'temp', 'personal'];
+    const text = (alias + ' ' + keywords).toLowerCase();
+    
+    // Extract features
+    const features = [
+      text.includes('work') || text.includes('business') || text.includes('corporate') ? 1 : 0,
+      text.includes('shop') || text.includes('buy') || text.includes('purchase') ? 1 : 0,
+      text.includes('temp') || text.includes('test') || text.includes('trial') ? 1 : 0,
+      text.includes('personal') || text.includes('private') ? 1 : 0,
+      text.includes('newsletter') || text.includes('news') ? 1 : 0,
+      text.includes('social') || text.includes('media') ? 1 : 0,
+      text.includes('finance') || text.includes('bank') ? 1 : 0,
+      text.includes('gaming') || text.includes('game') ? 1 : 0,
+      alias.length / 30,
+      (text.match(/\+/g) || []).length,
+      (text.match(/\./g) || []).length,
+      Math.random() * 0.1,
+      Math.random() * 0.1,
+      Math.random() * 0.1,
+      Math.random() * 0.1
+    ];
+    
+    const prediction = intentClassificationModel.predict(tf.tensor2d([features]));
+    const probabilities = prediction.dataSync();
+    const maxIndex = probabilities.indexOf(Math.max(...probabilities));
+    
+    return {
+      intent: categories[maxIndex],
+      confidence: probabilities[maxIndex],
+      breakdown: categories.map((cat, i) => ({ category: cat, probability: probabilities[i] }))
+    };
+  } catch (error) {
+    console.error('Intent classification error:', error);
+    return { intent: 'unknown', confidence: 0 };
+  }
+}
+
+// Enhanced alias generation with AI
+function generateAliasesWithAI() {
+  if (!aiEnabled) {
+    generateAliases();
+    return;
+  }
+  
+  generateAliases();
+  
+  // Add AI analysis to generated aliases
+  setTimeout(() => {
+    if (currentAliases && currentAliases.length > 0) {
+      currentAliases.forEach((alias, index) => {
+        const spamAnalysis = detectSpamAlias(alias.email);
+        const intentAnalysis = classifyIntent(alias.email, document.getElementById('customKeywords').value);
+        
+        alias.aiAnalysis = {
+          spam: spamAnalysis,
+          intent: intentAnalysis,
+          riskScore: spamAnalysis.confidence * 100
+        };
+      });
+      
+      displayAliases();
+      showAIInsights();
+    }
+  }, 500);
+}
+
+// Display AI insights
+function showAIInsights() {
+  if (!aiEnabled || !currentAliases.length) return;
+  
+  const highRiskAliases = currentAliases.filter(a => a.aiAnalysis && a.aiAnalysis.spam.riskLevel === 'high').length;
+  const intents = currentAliases.map(a => a.aiAnalysis?.intent.intent).filter(Boolean);
+  const mostCommonIntent = intents.length > 0 ? intents.reduce((a, b, i, arr) => 
+    arr.filter(v => v === a).length >= arr.filter(v => v === b).length ? a : b
+  ) : 'unknown';
+  
+  if (highRiskAliases > 0) {
+    showNotification(`⚠️ AI detected ${highRiskAliases} potentially risky aliases`, 'error');
+  }
+  
+  if (mostCommonIntent !== 'unknown') {
+    showNotification(`🎯 AI classified most aliases as: ${mostCommonIntent}`, 'success');
+  }
+}
+
+// Toggle AI features function
+function toggleAIFeatures() {
+  toggleAI();
+  document.getElementById('aliasInfoPopup').classList.add('hidden');
+}
+
+// Learn Modal functions
+function openLearnModal() {
+  document.getElementById('aliasInfoPopup').classList.add('hidden');
+  document.getElementById('learnModal').classList.remove('hidden');
+}
+
+// Tab switching for learn modal
+function switchLearnTab(tabName) {
+  // Hide all tab contents
+  document.querySelectorAll('.learn-section').forEach(content => {
+    content.classList.add('hidden');
+  });
+  
+  // Remove active class from all tab buttons
+  document.querySelectorAll('.learn-nav-button').forEach(btn => {
+    btn.classList.remove('active');
+    btn.classList.remove('bg-white/20', 'text-white');
+    btn.classList.add('text-gray-300', 'hover:text-white', 'hover:bg-white/10');
+  });
+  
+  // Show selected tab content
+  document.getElementById('learn-' + tabName).classList.remove('hidden');
+  
+  // Add active class to selected tab button
+  const activeBtn = document.querySelector(`[data-section="${tabName}"]`);
+  if (activeBtn) {
+    activeBtn.classList.add('active', 'bg-white/20', 'text-white');
+    activeBtn.classList.remove('text-gray-300', 'hover:text-white', 'hover:bg-white/10');
+  }
+}
+
+// Enhanced DOMContentLoaded event to include all functionality
+document.addEventListener('DOMContentLoaded', function() {
+  // Load AI preference on startup
+  if (localStorage.getItem('aiEnabled') === 'true') {
+    aiEnabled = true;
+    setTimeout(initializeAI, 1000);
+  }
+  
+  // Initialize learn modal tab functionality
+  document.querySelectorAll('.learn-nav-button').forEach(btn => {
+    btn.addEventListener('click', function() {
+      const tabName = this.getAttribute('data-section');
+      switchLearnTab(tabName);
+    });
+  });
+  
+  // Initialize first tab as active
+  switchLearnTab('basics');
+  
+  // Show Gmail Alias info popup on first load or refresh
+  document.getElementById('aliasInfoPopup').classList.remove('hidden');
+  
+  // Keyboard shortcuts implementation
+  if (typeof Mousetrap !== 'undefined') {
+    // Tab switching shortcuts
+    Mousetrap.bind('1', function() {
+      switchTab('generator');
+      return false;
+    });
+    
+    Mousetrap.bind('2', function() {
+      switchTab('results');
+      return false;
+    });
+    
+    Mousetrap.bind('3', function() {
+      switchTab('history');
+      return false;
+    });
+    
+    // Generate aliases with AI
+    Mousetrap.bind('g', function() {
+      if (document.getElementById('baseEmail').value.trim()) {
+        if (aiEnabled) {
+          generateAliasesWithAI();
+        } else {
+          generateAliases();
+        }
+      } else {
+        document.getElementById('baseEmail').focus();
+      }
+      return false;
+    });
+    
+    // Copy all aliases
+    Mousetrap.bind('ctrl+c', function() {
+      if (currentAliases && currentAliases.length > 0) {
+        copyAllAliases();
+      }
+      return false;
+    });
+    
+    // Quick generation shortcuts
+    Mousetrap.bind('w', function() {
+      quickGenerate('work');
+      return false;
+    });
+    
+    Mousetrap.bind('s', function() {
+      quickGenerate('shopping');
+      return false;
+    });
+    
+    Mousetrap.bind('t', function() {
+      quickGenerate('temp');
+      return false;
+    });
+    
+    // Clear history
+    Mousetrap.bind('del', function() {
+      clearHistory();
+      return false;
+    });
+    
+    // Close popup/modals
+    Mousetrap.bind('escape', function() {
+      // Close confirmation modal first (higher priority)
+      if (!document.getElementById('confirmationModal').classList.contains('hidden')) {
+        closeConfirmationModal();
+      } else {
+        document.getElementById('aliasInfoPopup').classList.add('hidden');
+      }
+      return false;
+    });
+    
+    // Help shortcut to show popup
+    Mousetrap.bind('?', function() {
+      document.getElementById('aliasInfoPopup').classList.remove('hidden');
+      return false;
+    });
+
+    // Toggle AI features
+    Mousetrap.bind('a', function() {
+      toggleAI();
+      return false;
+    });
+  }
+
+  // Burger menu and drawer logic for mobile
+  const burgerBtn = document.getElementById('burgerMenuBtn');
+  const drawer = document.getElementById('mobileDrawer');
+  const closeBtn = document.getElementById('closeDrawerBtn');
+  const overlay = document.getElementById('drawerOverlay');
+  const tabButtons = drawer ? drawer.querySelectorAll('.tab-button') : [];
+
+  function openDrawer() {
+    if (drawer && overlay) {
+      drawer.classList.remove('-translate-x-full');
+      overlay.classList.remove('hidden');
+    }
+  }
+  
+  function closeDrawer() {
+    if (drawer && overlay) {
+      drawer.classList.add('-translate-x-full');
+      overlay.classList.add('hidden');
+    }
+  }
+  
+  if (burgerBtn) burgerBtn.addEventListener('click', openDrawer);
+  if (closeBtn) closeBtn.addEventListener('click', closeDrawer);
+  if (overlay) overlay.addEventListener('click', closeDrawer);
+
+  tabButtons.forEach(btn => {
+    btn.addEventListener('click', () => {
+      closeDrawer();
+    });
+  });
 });
