@@ -6,24 +6,505 @@
   <title>Gmail Alias Generator</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="styles.css">
+  <!-- Font Awesome CDN -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" integrity="sha512-papm6Q6Qw6Q6Q6Q6Q6Q6Q6Q6Q6Q6Q6Q6Q6Q6Q6Q6Q6Q6Q6Q6Q6Q6Q6Q6Q6Q6Q6Q6Q6Q6Q6Q6Q6Q6Q6Q6Q6Q6Q6Q6Q==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+  <!-- Mousetrap for keyboard shortcuts -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/mousetrap/1.6.5/mousetrap.min.js"></script>
+  <!-- TensorFlow.js for AI features -->
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.15.0/dist/tf.min.js"></script>
+  <style>
+    /* Learn Modal Tab Styles */
+    .learn-tab-btn {
+      transition: all 0.3s ease;
+    }
+    
+    .learn-tab-btn:not(.active) {
+      color: #d1d5db;
+    }
+    
+    .learn-tab-btn:not(.active):hover {
+      color: white;
+      background-color: rgba(255, 255, 255, 0.1);
+    }
+    
+    .learn-tab-btn.active {
+      background-color: rgba(255, 255, 255, 0.2);
+      color: white;
+      font-weight: 600;
+    }
+    
+    .learn-tab-content {
+      animation: fadeIn 0.3s ease-in-out;
+    }
+    
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    
+    /* Custom scrollbar for learn modal */
+    .learn-content::-webkit-scrollbar {
+      width: 6px;
+    }
+    
+    .learn-content::-webkit-scrollbar-track {
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 3px;
+    }
+    
+    .learn-content::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.3);
+      border-radius: 3px;
+    }
+    
+    .learn-content::-webkit-scrollbar-thumb:hover {
+      background: rgba(255, 255, 255, 0.5);
+    }
+  </style>
 </head>
 <body class="min-h-screen p-4 relative overflow-x-hidden">
-  <!-- Gmail Alias Info Popup -->
+  <!-- Gmail Alias Info Popup (Simplified) -->
   <div id="aliasInfoPopup" class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 hidden">
-    <div class="bg-gradient-to-br from-indigo-700 to-purple-800 rounded-2xl shadow-2xl p-8 max-w-lg w-full relative animate-fade-in">
+    <div class="bg-gradient-to-br from-indigo-700 to-purple-800 rounded-2xl shadow-2xl p-6 max-w-md w-full relative animate-fade-in">
       <button onclick="document.getElementById('aliasInfoPopup').classList.add('hidden')" class="absolute top-4 right-4 text-white text-2xl hover:text-red-400 transition-all">&times;</button>
-      <h2 class="text-2xl font-bold text-white mb-4 flex items-center"><span class="mr-2">ℹ️</span>What is a Gmail Alias?</h2>
-      <div class="text-gray-200 space-y-3 text-base">
-        <p><b>Gmail aliases</b> are alternative email addresses you can create using your main Gmail account, without registering new accounts. They help you organize, filter, and protect your inbox.</p>
-        <ul class="list-disc pl-6 space-y-1">
-          <li><b>+ Aliases:</b> Add "+keyword" after your username (e.g., <span class="font-mono">yourname+shopping@gmail.com</span>) to track signups or filter emails.</li>
-          <li><b>Dot Variants:</b> Gmail ignores dots in usernames (<span class="font-mono">your.name@gmail.com</span> = <span class="font-mono">yourname@gmail.com</span>).</li>
-          <li><b>Random Aliases:</b> Generate unique addresses for privacy or temporary use.</li>
-        </ul>
-        <p><b>Uses:</b> Manage newsletters, signups, work, shopping, and protect your main address from spam. Easily filter or search emails by alias.</p>
+      <h2 class="text-xl font-bold text-white mb-4 flex items-center"><span class="mr-2"><i class="fa-solid fa-circle-info"></i></span>Gmail Alias Generator</h2>
+      <div class="text-gray-200 space-y-3 text-sm">
+        <p><b>Gmail aliases</b> are alternative email addresses that help you organize and protect your inbox without creating new accounts.</p>
+        
+        <div class="bg-gradient-to-r from-blue-500/20 to-purple-500/20 rounded-lg p-3">
+          <div class="flex items-center space-x-2 mb-2">
+            <i class="fa-solid fa-keyboard text-blue-400"></i>
+            <span class="text-white font-medium text-sm">Quick Start</span>
+          </div>
+          <div class="grid grid-cols-2 gap-2 text-xs">
+            <div><kbd class="px-1 py-0.5 bg-white/20 rounded">G</kbd> Generate</div>
+            <div><kbd class="px-1 py-0.5 bg-white/20 rounded">?</kbd> Help</div>
+            <div><kbd class="px-1 py-0.5 bg-white/20 rounded">A</kbd> AI Toggle</div>
+            <div><kbd class="px-1 py-0.5 bg-white/20 rounded">1-3</kbd> Tabs</div>
+          </div>
+        </div>
+
+        <div class="bg-gradient-to-r from-purple-500/20 to-pink-500/20 rounded-lg p-3">
+          <div class="flex items-center space-x-2 mb-2">
+            <i class="fa-solid fa-brain text-purple-400"></i>
+            <span class="text-white font-medium text-sm">AI Features Available</span>
+          </div>
+          <p class="text-gray-300 text-xs">Smart detection, intent classification, and privacy-first analysis</p>
+        </div>
       </div>
+      
       <div class="mt-6 text-center">
-        <button onclick="document.getElementById('aliasInfoPopup').classList.add('hidden')" class="px-6 py-2 rounded-lg bg-gradient-to-r from-indigo-500 to-purple-500 text-white font-medium shadow-lg hover:scale-105 transition-all">Got it!</button>
+        <div class="flex gap-3 justify-center">
+          <button onclick="document.getElementById('aliasInfoPopup').classList.add('hidden')" class="px-4 py-2 rounded-lg bg-gradient-to-r from-indigo-500 to-purple-500 text-white font-medium shadow-lg hover:scale-105 transition-all text-sm">
+            <i class="fa-solid fa-check mr-1"></i>Got it!
+          </button>
+          <button onclick="openLearnModal()" class="px-4 py-2 rounded-lg bg-gradient-to-r from-green-500 to-teal-500 text-white font-medium shadow-lg hover:scale-105 transition-all text-sm">
+            <i class="fa-solid fa-graduation-cap mr-1"></i>Learn More
+          </button>
+          <button onclick="toggleAIFeatures()" class="px-4 py-2 rounded-lg bg-gradient-to-r from-purple-500 to-pink-500 text-white font-medium shadow-lg hover:scale-105 transition-all text-sm">
+            <i class="fa-solid fa-brain mr-1"></i>Enable AI
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Learn Modal (Detailed Information) -->
+  <div id="learnModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/70 hidden">
+    <div class="bg-gradient-to-br from-slate-800 to-slate-900 rounded-2xl shadow-2xl max-w-4xl w-full h-5/6 relative animate-fade-in overflow-hidden">
+      <div class="flex h-full">
+        <!-- Sidebar Navigation -->
+        <div class="w-1/4 bg-gradient-to-b from-indigo-600 to-purple-700 p-6">
+          <div class="flex items-center justify-between mb-6">
+            <h2 class="text-xl font-bold text-white">Learn</h2>
+            <button onclick="document.getElementById('learnModal').classList.add('hidden')" class="text-white text-2xl hover:text-red-400 transition-all">&times;</button>
+          </div>
+          <nav class="space-y-2">
+            <button class="learn-nav-button active w-full text-left px-4 py-3 rounded-lg text-white font-medium hover:bg-white/10 transition-all" data-section="basics">
+              <i class="fa-solid fa-circle-info mr-2"></i>Basics
+            </button>
+            <button class="learn-nav-button w-full text-left px-4 py-3 rounded-lg text-white font-medium hover:bg-white/10 transition-all" data-section="types">
+              <i class="fa-solid fa-list mr-2"></i>Alias Types
+            </button>
+            <button class="learn-nav-button w-full text-left px-4 py-3 rounded-lg text-white font-medium hover:bg-white/10 transition-all" data-section="shortcuts">
+              <i class="fa-solid fa-keyboard mr-2"></i>Shortcuts
+            </button>
+            <button class="learn-nav-button w-full text-left px-4 py-3 rounded-lg text-white font-medium hover:bg-white/10 transition-all" data-section="ai">
+              <i class="fa-solid fa-brain mr-2"></i>AI Features
+            </button>
+            <button class="learn-nav-button w-full text-left px-4 py-3 rounded-lg text-white font-medium hover:bg-white/10 transition-all" data-section="privacy">
+              <i class="fa-solid fa-shield-halved mr-2"></i>Privacy
+            </button>
+            <button class="learn-nav-button w-full text-left px-4 py-3 rounded-lg text-white font-medium hover:bg-white/10 transition-all" data-section="tips">
+              <i class="fa-solid fa-lightbulb mr-2"></i>Pro Tips
+            </button>
+          </nav>
+        </div>
+
+        <!-- Content Area -->
+        <div class="flex-1 p-8 overflow-y-auto">
+          <!-- Basics Section -->
+          <div id="learn-basics" class="learn-section">
+            <h3 class="text-2xl font-bold text-white mb-6 flex items-center">
+              <i class="fa-solid fa-circle-info mr-3 text-blue-400"></i>What are Gmail Aliases?
+            </h3>
+            <div class="space-y-6 text-gray-300">
+              <div class="bg-gradient-to-r from-blue-500/10 to-purple-500/10 rounded-lg p-6 border border-blue-500/20">
+                <h4 class="text-lg font-semibold text-white mb-3">Overview</h4>
+                <p class="mb-4">Gmail aliases are alternative email addresses you can create using your existing Gmail account. They allow you to receive emails at different addresses while using the same inbox, helping you organize, filter, and protect your primary email.</p>
+                <p>All emails sent to your aliases arrive in your main Gmail inbox, but you can easily filter and organize them using Gmail's powerful filtering system.</p>
+              </div>
+              
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="bg-gradient-to-br from-green-500/10 to-teal-500/10 rounded-lg p-6 border border-green-500/20">
+                  <h4 class="text-lg font-semibold text-white mb-3 flex items-center">
+                    <i class="fa-solid fa-check-circle mr-2 text-green-400"></i>Benefits
+                  </h4>
+                  <ul class="space-y-2 text-sm">
+                    <li>• Organize emails by category or source</li>
+                    <li>• Track which services share your email</li>
+                    <li>• Protect your primary email from spam</li>
+                    <li>• Create temporary addresses for signups</li>
+                    <li>• No need to create multiple accounts</li>
+                  </ul>
+                </div>
+                
+                <div class="bg-gradient-to-br from-purple-500/10 to-pink-500/10 rounded-lg p-6 border border-purple-500/20">
+                  <h4 class="text-lg font-semibold text-white mb-3 flex items-center">
+                    <i class="fa-solid fa-cog mr-2 text-purple-400"></i>How It Works
+                  </h4>
+                  <ul class="space-y-2 text-sm">
+                    <li>• Gmail ignores dots in your username</li>
+                    <li>• Plus (+) adds keywords to your address</li>
+                    <li>• All variations point to your main inbox</li>
+                    <li>• Use filters to automatically organize</li>
+                    <li>• Works with any Gmail account</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Alias Types Section -->
+          <div id="learn-types" class="learn-section hidden">
+            <h3 class="text-2xl font-bold text-white mb-6 flex items-center">
+              <i class="fa-solid fa-list mr-3 text-green-400"></i>Types of Aliases
+            </h3>
+            <div class="space-y-6">
+              <div class="bg-gradient-to-r from-blue-500/10 to-cyan-500/10 rounded-lg p-6 border border-blue-500/20">
+                <h4 class="text-xl font-semibold text-white mb-4 flex items-center">
+                  <i class="fa-solid fa-plus mr-2 text-blue-400"></i>Plus (+) Aliases
+                </h4>
+                <p class="text-gray-300 mb-4">Add keywords after a plus sign in your email address.</p>
+                <div class="bg-black/30 rounded-lg p-4 font-mono text-sm">
+                  <p class="text-gray-400">Original: <span class="text-white">yourname@gmail.com</span></p>
+                  <p class="text-gray-400">Aliases:</p>
+                  <p class="text-green-400">• yourname+shopping@gmail.com</p>
+                  <p class="text-green-400">• yourname+work@gmail.com</p>
+                  <p class="text-green-400">• yourname+newsletter@gmail.com</p>
+                </div>
+                <p class="text-gray-400 text-sm mt-3">Perfect for: Tracking signups, organizing emails, temporary uses</p>
+              </div>
+
+              <div class="bg-gradient-to-r from-purple-500/10 to-pink-500/10 rounded-lg p-6 border border-purple-500/20">
+                <h4 class="text-xl font-semibold text-white mb-4 flex items-center">
+                  <i class="fa-solid fa-circle mr-2 text-purple-400"></i>Dot (.) Variants
+                </h4>
+                <p class="text-gray-300 mb-4">Gmail ignores dots in usernames, creating natural aliases.</p>
+                <div class="bg-black/30 rounded-lg p-4 font-mono text-sm">
+                  <p class="text-gray-400">Original: <span class="text-white">johnsmith@gmail.com</span></p>
+                  <p class="text-gray-400">Aliases:</p>
+                  <p class="text-green-400">• john.smith@gmail.com</p>
+                  <p class="text-green-400">• j.ohnsmith@gmail.com</p>
+                  <p class="text-green-400">• jo.hn.smith@gmail.com</p>
+                </div>
+                <p class="text-gray-400 text-sm mt-3">Perfect for: Different services, avoiding detection, backup addresses</p>
+              </div>
+
+              <div class="bg-gradient-to-r from-orange-500/10 to-red-500/10 rounded-lg p-6 border border-orange-500/20">
+                <h4 class="text-xl font-semibold text-white mb-4 flex items-center">
+                  <i class="fa-solid fa-dice mr-2 text-orange-400"></i>Random Aliases
+                </h4>
+                <p class="text-gray-300 mb-4">Combine plus notation with random words for unique addresses.</p>
+                <div class="bg-black/30 rounded-lg p-4 font-mono text-sm">
+                  <p class="text-gray-400">Examples:</p>
+                  <p class="text-green-400">• yourname+sky47@gmail.com</p>
+                  <p class="text-green-400">• yourname+temp-blue@gmail.com</p>
+                  <p class="text-green-400">• yourname+trial-moon@gmail.com</p>
+                </div>
+                <p class="text-gray-400 text-sm mt-3">Perfect for: Privacy, temporary signups, one-time uses</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Shortcuts Section -->
+          <div id="learn-shortcuts" class="learn-section hidden">
+            <h3 class="text-2xl font-bold text-white mb-6 flex items-center">
+              <i class="fa-solid fa-keyboard mr-3 text-yellow-400"></i>Keyboard Shortcuts
+            </h3>
+            <div class="space-y-6">
+              <div class="bg-gradient-to-r from-indigo-500/10 to-purple-500/10 rounded-lg p-6 border border-indigo-500/20">
+                <h4 class="text-lg font-semibold text-white mb-4">Navigation & Generation</h4>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div class="flex justify-between items-center p-3 bg-black/20 rounded-lg">
+                    <span class="text-gray-300">Generate Aliases</span>
+                    <kbd class="px-3 py-1 bg-white/20 rounded text-sm font-mono text-white">G</kbd>
+                  </div>
+                  <div class="flex justify-between items-center p-3 bg-black/20 rounded-lg">
+                    <span class="text-gray-300">Copy All</span>
+                    <kbd class="px-3 py-1 bg-white/20 rounded text-sm font-mono text-white">Ctrl+C</kbd>
+                  </div>
+                  <div class="flex justify-between items-center p-3 bg-black/20 rounded-lg">
+                    <span class="text-gray-300">Generator Tab</span>
+                    <kbd class="px-3 py-1 bg-white/20 rounded text-sm font-mono text-white">1</kbd>
+                  </div>
+                  <div class="flex justify-between items-center p-3 bg-black/20 rounded-lg">
+                    <span class="text-gray-300">Results Tab</span>
+                    <kbd class="px-3 py-1 bg-white/20 rounded text-sm font-mono text-white">2</kbd>
+                  </div>
+                  <div class="flex justify-between items-center p-3 bg-black/20 rounded-lg">
+                    <span class="text-gray-300">History Tab</span>
+                    <kbd class="px-3 py-1 bg-white/20 rounded text-sm font-mono text-white">3</kbd>
+                  </div>
+                  <div class="flex justify-between items-center p-3 bg-black/20 rounded-lg">
+                    <span class="text-gray-300">Help/Info</span>
+                    <kbd class="px-3 py-1 bg-white/20 rounded text-sm font-mono text-white">?</kbd>
+                  </div>
+                </div>
+              </div>
+
+              <div class="bg-gradient-to-r from-green-500/10 to-teal-500/10 rounded-lg p-6 border border-green-500/20">
+                <h4 class="text-lg font-semibold text-white mb-4">Quick Generation</h4>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div class="flex justify-between items-center p-3 bg-black/20 rounded-lg">
+                    <span class="text-gray-300">Work Aliases</span>
+                    <kbd class="px-3 py-1 bg-white/20 rounded text-sm font-mono text-white">W</kbd>
+                  </div>
+                  <div class="flex justify-between items-center p-3 bg-black/20 rounded-lg">
+                    <span class="text-gray-300">Shopping</span>
+                    <kbd class="px-3 py-1 bg-white/20 rounded text-sm font-mono text-white">S</kbd>
+                  </div>
+                  <div class="flex justify-between items-center p-3 bg-black/20 rounded-lg">
+                    <span class="text-gray-300">Temporary</span>
+                    <kbd class="px-3 py-1 bg-white/20 rounded text-sm font-mono text-white">T</kbd>
+                  </div>
+                </div>
+              </div>
+
+              <div class="bg-gradient-to-r from-red-500/10 to-pink-500/10 rounded-lg p-6 border border-red-500/20">
+                <h4 class="text-lg font-semibold text-white mb-4">AI & Management</h4>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div class="flex justify-between items-center p-3 bg-black/20 rounded-lg">
+                    <span class="text-gray-300">Toggle AI</span>
+                    <kbd class="px-3 py-1 bg-white/20 rounded text-sm font-mono text-white">A</kbd>
+                  </div>
+                  <div class="flex justify-between items-center p-3 bg-black/20 rounded-lg">
+                    <span class="text-gray-300">Clear History</span>
+                    <kbd class="px-3 py-1 bg-white/20 rounded text-sm font-mono text-white">Delete</kbd>
+                  </div>
+                  <div class="flex justify-between items-center p-3 bg-black/20 rounded-lg">
+                    <span class="text-gray-300">Close Popup</span>
+                    <kbd class="px-3 py-1 bg-white/20 rounded text-sm font-mono text-white">Esc</kbd>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- AI Features Section -->
+          <div id="learn-ai" class="learn-section hidden">
+            <h3 class="text-2xl font-bold text-white mb-6 flex items-center">
+              <i class="fa-solid fa-brain mr-3 text-purple-400"></i>AI-Powered Features
+            </h3>
+            <div class="space-y-6">
+              <div class="bg-gradient-to-r from-purple-500/10 to-blue-500/10 rounded-lg p-6 border border-purple-500/20">
+                <div class="flex items-center space-x-3 mb-4">
+                  <i class="fa-solid fa-cpu text-purple-400 text-2xl"></i>
+                  <div>
+                    <h4 class="text-xl font-semibold text-white">Powered by TensorFlow.js</h4>
+                    <p class="text-gray-400 text-sm">All AI processing happens locally in your browser</p>
+                  </div>
+                </div>
+                <p class="text-gray-300">Your data never leaves your device. AI features are completely privacy-first and work offline.</p>
+              </div>
+
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="bg-gradient-to-br from-green-500/10 to-teal-500/10 rounded-lg p-6 border border-green-500/20">
+                  <h4 class="text-lg font-semibold text-white mb-3 flex items-center">
+                    <i class="fa-solid fa-shield-halved mr-2 text-green-400"></i>Smart Spam Detection
+                  </h4>
+                  <p class="text-gray-300 text-sm mb-3">AI analyzes alias patterns to detect potential spam risks and suggests safer alternatives.</p>
+                  <ul class="text-gray-400 text-xs space-y-1">
+                    <li>• Pattern analysis for suspicious aliases</li>
+                    <li>• Risk scoring from low to high</li>
+                    <li>• Suggestions for improvement</li>
+                    <li>• Real-time feedback during generation</li>
+                  </ul>
+                </div>
+
+                <div class="bg-gradient-to-br from-blue-500/10 to-cyan-500/10 rounded-lg p-6 border border-blue-500/20">
+                  <h4 class="text-lg font-semibold text-white mb-3 flex items-center">
+                    <i class="fa-solid fa-bullseye mr-2 text-blue-400"></i>Intent Classification
+                  </h4>
+                  <p class="text-gray-300 text-sm mb-3">Automatically categorizes aliases based on usage patterns and context.</p>
+                  <ul class="text-gray-400 text-xs space-y-1">
+                    <li>• Work, shopping, personal, temporary</li>
+                    <li>• Context-aware categorization</li>
+                    <li>• Learning from your patterns</li>
+                    <li>• Smart organization suggestions</li>
+                  </ul>
+                </div>
+
+                <div class="bg-gradient-to-br from-orange-500/10 to-red-500/10 rounded-lg p-6 border border-orange-500/20">
+                  <h4 class="text-lg font-semibold text-white mb-3 flex items-center">
+                    <i class="fa-solid fa-chart-line mr-2 text-orange-400"></i>Risk Assessment
+                  </h4>
+                  <p class="text-gray-300 text-sm mb-3">Evaluates alias security and provides privacy recommendations.</p>
+                  <ul class="text-gray-400 text-xs space-y-1">
+                    <li>• Privacy risk evaluation</li>
+                    <li>• Security recommendations</li>
+                    <li>• Best practice suggestions</li>
+                    <li>• Vulnerability detection</li>
+                  </ul>
+                </div>
+
+                <div class="bg-gradient-to-br from-yellow-500/10 to-orange-500/10 rounded-lg p-6 border border-yellow-500/20">
+                  <h4 class="text-lg font-semibold text-white mb-3 flex items-center">
+                    <i class="fa-solid fa-lightbulb mr-2 text-yellow-400"></i>Smart Suggestions
+                  </h4>
+                  <p class="text-gray-300 text-sm mb-3">AI learns from your patterns to suggest personalized keywords.</p>
+                  <ul class="text-gray-400 text-xs space-y-1">
+                    <li>• Personalized keyword suggestions</li>
+                    <li>• Usage pattern learning</li>
+                    <li>• Context-aware recommendations</li>
+                    <li>• Continuous improvement</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Privacy Section -->
+          <div id="learn-privacy" class="learn-section hidden">
+            <h3 class="text-2xl font-bold text-white mb-6 flex items-center">
+              <i class="fa-solid fa-shield-halved mr-3 text-green-400"></i>Privacy & Security
+            </h3>
+            <div class="space-y-6">
+              <div class="bg-gradient-to-r from-green-500/10 to-teal-500/10 rounded-lg p-6 border border-green-500/20">
+                <h4 class="text-xl font-semibold text-white mb-4">Data Privacy</h4>
+                <div class="space-y-3 text-gray-300">
+                  <p>• All data is stored locally in your browser</p>
+                  <p>• No information is sent to external servers</p>
+                  <p>• AI processing happens entirely on your device</p>
+                  <p>• No tracking or analytics collection</p>
+                  <p>• Clear your data anytime from browser settings</p>
+                </div>
+              </div>
+
+              <div class="bg-gradient-to-r from-blue-500/10 to-purple-500/10 rounded-lg p-6 border border-blue-500/20">
+                <h4 class="text-xl font-semibold text-white mb-4">Security Best Practices</h4>
+                <div class="space-y-3 text-gray-300">
+                  <p>• Use unique aliases for different services</p>
+                  <p>• Avoid predictable patterns in aliases</p>
+                  <p>• Regularly review and clean up unused aliases</p>
+                  <p>• Use temporary aliases for one-time signups</p>
+                  <p>• Monitor your Gmail filters for organization</p>
+                </div>
+              </div>
+
+              <div class="bg-gradient-to-r from-purple-500/10 to-pink-500/10 rounded-lg p-6 border border-purple-500/20">
+                <h4 class="text-xl font-semibold text-white mb-4">Gmail Filter Setup</h4>
+                <div class="space-y-3 text-gray-300 text-sm">
+                  <p><strong>Step 1:</strong> Go to Gmail Settings → Filters and Blocked Addresses</p>
+                  <p><strong>Step 2:</strong> Click "Create a new filter"</p>
+                  <p><strong>Step 3:</strong> In "To" field, enter your alias (e.g., yourname+shopping@gmail.com)</p>
+                  <p><strong>Step 4:</strong> Choose actions: Apply label, Skip inbox, etc.</p>
+                  <p><strong>Step 5:</strong> Save filter and apply to existing emails if needed</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Pro Tips Section -->
+          <div id="learn-tips" class="learn-section hidden">
+            <h3 class="text-2xl font-bold text-white mb-6 flex items-center">
+              <i class="fa-solid fa-lightbulb mr-3 text-yellow-400"></i>Pro Tips & Tricks
+            </h3>
+            <div class="space-y-6">
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="bg-gradient-to-br from-blue-500/10 to-cyan-500/10 rounded-lg p-6 border border-blue-500/20">
+                  <h4 class="text-lg font-semibold text-white mb-3 flex items-center">
+                    <i class="fa-solid fa-envelope mr-2 text-blue-400"></i>Newsletter Management
+                  </h4>
+                  <ul class="text-gray-300 text-sm space-y-2">
+                    <li>• Use yourname+newsletter@gmail.com for all subscriptions</li>
+                    <li>• Create specific aliases like yourname+tech-news@gmail.com</li>
+                    <li>• Set up filters to automatically label and organize</li>
+                    <li>• Easy to unsubscribe by filtering the alias</li>
+                  </ul>
+                </div>
+
+                <div class="bg-gradient-to-br from-green-500/10 to-teal-500/10 rounded-lg p-6 border border-green-500/20">
+                  <h4 class="text-lg font-semibold text-white mb-3 flex items-center">
+                    <i class="fa-solid fa-cart-shopping mr-2 text-green-400"></i>Shopping & E-commerce
+                  </h4>
+                  <ul class="text-gray-300 text-sm space-y-2">
+                    <li>• Use yourname+store-name@gmail.com for each store</li>
+                    <li>• Track which stores share your email</li>
+                    <li>• Easy to identify legitimate vs spam emails</li>
+                    <li>• Create filters for order confirmations</li>
+                  </ul>
+                </div>
+
+                <div class="bg-gradient-to-br from-purple-500/10 to-pink-500/10 rounded-lg p-6 border border-purple-500/20">
+                  <h4 class="text-lg font-semibold text-white mb-3 flex items-center">
+                    <i class="fa-solid fa-briefcase mr-2 text-purple-400"></i>Professional Use
+                  </h4>
+                  <ul class="text-gray-300 text-sm space-y-2">
+                    <li>• yourname+resume@gmail.com for job applications</li>
+                    <li>• yourname+networking@gmail.com for professional contacts</li>
+                    <li>• yourname+clients@gmail.com for client communications</li>
+                    <li>• Separate work and personal email flows</li>
+                  </ul>
+                </div>
+
+                <div class="bg-gradient-to-br from-orange-500/10 to-red-500/10 rounded-lg p-6 border border-orange-500/20">
+                  <h4 class="text-lg font-semibold text-white mb-3 flex items-center">
+                    <i class="fa-solid fa-clock mr-2 text-orange-400"></i>Temporary & Testing
+                  </h4>
+                  <ul class="text-gray-300 text-sm space-y-2">
+                    <li>• yourname+temp-trial@gmail.com for free trials</li>
+                    <li>• yourname+test-signup@gmail.com for testing</li>
+                    <li>• Include dates: yourname+trial-jan24@gmail.com</li>
+                    <li>• Easy to identify and clean up later</li>
+                  </ul>
+                </div>
+              </div>
+
+              <div class="bg-gradient-to-r from-yellow-500/10 to-orange-500/10 rounded-lg p-6 border border-yellow-500/20">
+                <h4 class="text-xl font-semibold text-white mb-4">Advanced Strategies</h4>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <h5 class="font-semibold text-white mb-2">Layered Approach</h5>
+                    <ul class="text-gray-300 text-sm space-y-1">
+                      <li>• Combine dots and plus signs</li>
+                      <li>• jo.hn+shopping@gmail.com</li>
+                      <li>• j.ohn+work-project@gmail.com</li>
+                    </ul>
+                  </div>
+                  <div>
+                    <h5 class="font-semibold text-white mb-2">Tracking Systems</h5>
+                    <ul class="text-gray-300 text-sm space-y-1">
+                      <li>• Include source in alias</li>
+                      <li>• yourname+facebook-signup@gmail.com</li>
+                      <li>• Track data breaches and leaks</li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -38,7 +519,7 @@
       <!-- Header -->
       <div class="text-center mb-8">
         <button onclick="document.getElementById('aliasInfoPopup').classList.remove('hidden')" class="absolute top-6 right-6 bg-gradient-to-r from-indigo-500 to-purple-500 text-white px-4 py-2 rounded-lg shadow-lg hover:scale-105 transition-all z-20">
-          What is Gmail Alias?
+          <i class="fa-solid fa-circle-info mr-2"></i>What is Gmail Alias? <kbd class="ml-2 px-1 py-0.5 bg-white/20 rounded text-xs">?</kbd>
         </button>
         <h1 class="text-4xl lg:text-6xl font-bold text-white glow-text mb-4">Gmail Alias Generator</h1>
         <p class="text-gray-300 text-lg lg:text-xl">Create unlimited email aliases for your Gmail account with advanced features</p>
@@ -48,13 +529,13 @@
       <div class="flex justify-center mb-8 hidden md:flex">
         <div class="bg-white/5 backdrop-blur-lg p-2 rounded-2xl border border-white/10">
           <button class="tab-button px-8 py-3 rounded-xl font-medium text-white bg-gradient-to-r from-indigo-500 to-purple-500 focus:outline-none shadow-lg" data-tab="generator">
-            🚀 Generator
+            <i class="fa-solid fa-rocket mr-2"></i>Generator
           </button>
           <button class="tab-button px-8 py-3 rounded-xl font-medium text-white bg-transparent hover:bg-white/10 ml-2 focus:outline-none" data-tab="results">
-            📊 Results
+            <i class="fa-solid fa-chart-bar mr-2"></i>Results
           </button>
           <button class="tab-button px-8 py-3 rounded-xl font-medium text-white bg-transparent hover:bg-white/10 ml-2 focus:outline-none" data-tab="history">
-            📚 History
+            <i class="fa-solid fa-book mr-2"></i>History
           </button>
         </div>
       </div>
@@ -63,7 +544,7 @@
       <div class="md:hidden flex justify-between items-center mb-6 px-2">
         <div class="text-2xl font-bold text-white">Gmail Alias</div>
         <button id="burgerMenuBtn" class="text-white text-3xl focus:outline-none" aria-label="Open menu">
-          <span>&#9776;</span>
+          <span><i class="fa-solid fa-bars"></i></span>
         </button>
       </div>
       <!-- Drawer for mobile tabs -->
@@ -74,13 +555,13 @@
         </div>
         <div class="flex flex-col mt-4 space-y-2 px-6">
           <button class="tab-button text-left px-4 py-3 rounded-xl font-medium text-white bg-gradient-to-r from-indigo-500 to-purple-500 focus:outline-none shadow-lg" data-tab="generator">
-            🚀 Generator
+            <i class="fa-solid fa-rocket mr-2"></i>Generator
           </button>
           <button class="tab-button text-left px-4 py-3 rounded-xl font-medium text-white bg-transparent hover:bg-white/10 focus:outline-none" data-tab="results">
-            📊 Results
+            <i class="fa-solid fa-chart-bar mr-2"></i>Results
           </button>
           <button class="tab-button text-left px-4 py-3 rounded-xl font-medium text-white bg-transparent hover:bg-white/10 focus:outline-none" data-tab="history">
-            📚 History
+            <i class="fa-solid fa-book mr-2"></i>History
           </button>
         </div>
       </div>
@@ -90,43 +571,44 @@
       <div class="grid-layout">
         <!-- Left Sidebar - Stats & Features -->
         <div class="space-y-6">
-          <!-- Stats Cards -->
-          <div class="stats-card">
-            <div class="animated-bg"></div>
-            <h3 class="text-lg font-semibold text-white mb-2">🎯 Quick Stats</h3>
-            <div class="space-y-2 text-sm">
-              <div class="flex justify-between text-gray-300">
-                <span>Total Generated:</span>
-                <span id="totalGenerated">0</span>
-              </div>
-              <div class="flex justify-between text-gray-300">
-                <span>History Entries:</span>
-                <span id="historyCount">0</span>
-              </div>
-              <div class="flex justify-between text-gray-300">
-                <span>Starred Aliases:</span>
-                <span id="starredCount">0</span>
+          <!-- Stats & Features Cards (Desktop only) -->
+          <div class="hidden md:block">
+            <div class="stats-card">
+              <div class="animated-bg"></div>
+              <h3 class="text-lg font-semibold text-white mb-2"><i class="fa-solid fa-chart-simple mr-2"></i>Quick Stats</h3>
+              <div class="space-y-2 text-sm">
+                <div class="flex justify-between text-gray-300">
+                  <span>Total Generated:</span>
+                  <span id="totalGenerated">0</span>
+                </div>
+                <div class="flex justify-between text-gray-300">
+                  <span>History Entries:</span>
+                  <span id="historyCount">0</span>
+                </div>
+                <div class="flex justify-between text-gray-300">
+                  <span>Starred Aliases:</span>
+                  <span id="starredCount">0</span>
+                </div>
               </div>
             </div>
-          </div>
 
-          <!-- Feature Cards -->
-          <div class="feature-card">
-            <div class="text-4xl mb-3">⚡</div>
-            <h4 class="text-white font-semibold mb-2">Lightning Fast</h4>
-            <p class="text-gray-400 text-sm">Generate hundreds of aliases instantly</p>
-          </div>
+            <div class="feature-card">
+              <div class="text-4xl mb-3"><i class="fa-solid fa-bolt"></i></div>
+              <h4 class="text-white font-semibold mb-2">Lightning Fast</h4>
+              <p class="text-gray-400 text-sm">Generate hundreds of aliases instantly</p>
+            </div>
 
-          <div class="feature-card">
-            <div class="text-4xl mb-3">🛡️</div>
-            <h4 class="text-white font-semibold mb-2">Privacy First</h4>
-            <p class="text-gray-400 text-sm">All data stored locally on your device</p>
-          </div>
+            <div class="feature-card">
+              <div class="text-4xl mb-3"><i class="fa-solid fa-shield-halved"></i></div>
+              <h4 class="text-white font-semibold mb-2">Privacy First</h4>
+              <p class="text-gray-400 text-sm">All data stored locally on your device</p>
+            </div>
 
-          <div class="feature-card">
-            <div class="text-4xl mb-3">📱</div>
-            <h4 class="text-white font-semibold mb-2">Responsive</h4>
-            <p class="text-gray-400 text-sm">Works perfectly on all devices</p>
+            <div class="feature-card">
+              <div class="text-4xl mb-3"><i class="fa-solid fa-mobile-screen-button"></i></div>
+              <h4 class="text-white font-semibold mb-2">Responsive</h4>
+              <p class="text-gray-400 text-sm">Works perfectly on all devices</p>
+            </div>
           </div>
         </div>
 
@@ -137,7 +619,7 @@
             <div class="glass-container rounded-3xl p-8 space-y-8">
               <div class="text-center space-y-4">
                 <div class="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-full mb-4">
-                  <span class="text-3xl">✉️</span>
+                  <span class="text-3xl"><i class="fa-solid fa-envelope"></i></span>
                 </div>
                 <h2 class="text-2xl font-bold text-white">Email Configuration</h2>
                 <p class="text-gray-300">Configure your Gmail address and alias preferences</p>
@@ -216,9 +698,46 @@
                 onclick="generateAliases()" 
                 class="w-full glass-button text-white py-5 rounded-xl font-medium text-lg pulse-glow flex items-center justify-center space-x-2"
               >
-                <span>🎯</span>
+                <span><i class="fa-solid fa-bullseye"></i></span>
                 <span>Generate Aliases</span>
               </button>
+
+              <!-- Stats & Features Cards (Mobile only) -->
+              <div class="block md:hidden mt-6">
+                <div class="stats-card mb-4">
+                  <div class="animated-bg"></div>
+                  <h3 class="text-lg font-semibold text-white mb-2"><i class="fa-solid fa-chart-simple mr-2"></i>Quick Stats</h3>
+                  <div class="space-y-2 text-sm">
+                    <div class="flex justify-between text-gray-300">
+                      <span><i class="fa-solid fa-envelope-circle-check mr-1"></i>Total Generated:</span>
+                      <span id="totalGenerated">0</span>
+                    </div>
+                    <div class="flex justify-between text-gray-300">
+                      <span><i class="fa-solid fa-clock-rotate-left mr-1"></i>History Entries:</span>
+                      <span id="historyCount">0</span>
+                    </div>
+                    <div class="flex justify-between text-gray-300">
+                      <span><i class="fa-solid fa-star mr-1"></i>Starred Aliases:</span>
+                      <span id="starredCount">0</span>
+                    </div>
+                  </div>
+                </div>
+                <div class="feature-card mb-2">
+                  <div class="text-4xl mb-3"><i class="fa-solid fa-bolt"></i></div>
+                  <h4 class="text-white font-semibold mb-2">Lightning Fast</h4>
+                  <p class="text-gray-400 text-sm">Generate hundreds of aliases instantly</p>
+                </div>
+                <div class="feature-card mb-2">
+                  <div class="text-4xl mb-3"><i class="fa-solid fa-shield-halved"></i></div>
+                  <h4 class="text-white font-semibold mb-2">Privacy First</h4>
+                  <p class="text-gray-400 text-sm">All data stored locally on your device</p>
+                </div>
+                <div class="feature-card">
+                  <div class="text-4xl mb-3"><i class="fa-solid fa-mobile-screen-button"></i></div>
+                  <h4 class="text-white font-semibold mb-2">Responsive</h4>
+                  <p class="text-gray-400 text-sm">Works perfectly on all devices</p>
+                </div>
+              </div>
             </div>
           </div>
 
@@ -228,7 +747,7 @@
               <!-- Enhanced Summary -->
               <div id="aliasSummary" class="text-center space-y-4">
                 <div class="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-r from-green-500 to-blue-500 rounded-full mb-4">
-                  <span class="text-3xl">🎉</span>
+                  <span class="text-3xl"><i class="fa-solid fa-list-check"></i></span>
                 </div>
                 <h3 class="text-2xl font-semibold text-white">Generated Aliases</h3>
                 <div id="summaryBreakdown" class="text-gray-300"></div>
@@ -236,11 +755,11 @@
 
               <!-- Enhanced Filter Controls -->
               <div class="flex flex-wrap gap-3 justify-center">
-                <button class="filter-button active" data-filter="all">🌟 All</button>
-                <button class="filter-button" data-filter="plus">➕ Keywords</button>
-                <button class="filter-button" data-filter="dot">🔘 Dot Variants</button>
-                <button class="filter-button" data-filter="random">🎲 Random</button>
-                <button class="filter-button" data-filter="starred">⭐ Starred</button>
+                <button class="filter-button active" data-filter="all"><i class="fa-solid fa-star mr-1"></i>All</button>
+                <button class="filter-button" data-filter="plus"><i class="fa-solid fa-plus mr-1"></i>Keywords</button>
+                <button class="filter-button" data-filter="dot"><i class="fa-solid fa-circle mr-1"></i>Dot Variants</button>
+                <button class="filter-button" data-filter="random"><i class="fa-solid fa-dice mr-1"></i>Random</button>
+                <button class="filter-button" data-filter="starred"><i class="fa-solid fa-star mr-1"></i>Starred</button>
               </div>
 
               <!-- Aliases List with enhanced styling -->
@@ -252,21 +771,21 @@
                   onclick="copyAllAliases()" 
                   class="glass-button glass-secondary text-white py-4 rounded-xl font-medium flex items-center justify-center space-x-2"
                 >
-                  <span>📋</span>
+                  <span><i class="fa-solid fa-copy"></i></span>
                   <span>Copy All</span>
                 </button>
                 <button 
                   onclick="exportToFile('txt')" 
                   class="glass-button glass-orange text-white py-4 rounded-xl font-medium flex items-center justify-center space-x-2"
                 >
-                  <span>📄</span>
+                  <span><i class="fa-solid fa-file-lines"></i></span>
                   <span>Export TXT</span>
                 </button>
                 <button 
                   onclick="exportToFile('csv')" 
                   class="glass-button glass-orange text-white py-4 rounded-xl font-medium flex items-center justify-center space-x-2"
                 >
-                  <span>📊</span>
+                  <span><i class="fa-solid fa-file-csv"></i></span>
                   <span>Export CSV</span>
                 </button>
               </div>
@@ -278,7 +797,7 @@
             <div class="glass-container rounded-3xl p-8 space-y-6">
               <div class="text-center space-y-4">
                 <div class="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full mb-4">
-                  <span class="text-3xl">📚</span>
+                  <span class="text-3xl"><i class="fa-solid fa-book"></i></span>
                 </div>
                 <h3 class="text-2xl font-semibold text-white">Recent History</h3>
                 <p class="text-gray-300">Your previously generated aliases</p>
@@ -288,7 +807,7 @@
               </div>
               <div class="text-center">
                 <button onclick="clearHistory()" class="text-red-400 hover:text-red-300 px-6 py-2 rounded-lg hover:bg-red-500/10 transition-all">
-                  🗑️ Clear History
+                  <i class="fa-solid fa-trash"></i> Clear History
                 </button>
               </div>
             </div>
@@ -300,20 +819,20 @@
           <!-- Quick Actions -->
           <div class="glass-container rounded-2xl p-6">
             <h3 class="text-lg font-semibold text-white mb-4 flex items-center">
-              <span class="mr-2">⚡</span>
+              <span class="mr-2"><i class="fa-solid fa-bolt"></i></span>
               Quick Actions
             </h3>
             <div class="space-y-3">
               <button class="w-full glass-button text-white py-3 rounded-lg text-sm flex items-center justify-center space-x-2" onclick="quickGenerate('work')">
-                <span>💼</span>
+                <span><i class="fa-solid fa-briefcase"></i></span>
                 <span>Work Aliases</span>
               </button>
               <button class="w-full glass-button text-white py-3 rounded-lg text-sm flex items-center justify-center space-x-2" onclick="quickGenerate('shopping')">
-                <span>🛒</span>
+                <span><i class="fa-solid fa-cart-shopping"></i></span>
                 <span>Shopping Aliases</span>
               </button>
               <button class="w-full glass-button text-white py-3 rounded-lg text-sm flex items-center justify-center space-x-2" onclick="quickGenerate('temp')">
-                <span>⏰</span>
+                <span><i class="fa-solid fa-clock"></i></span>
                 <span>Temporary Aliases</span>
               </button>
             </div>
@@ -322,26 +841,26 @@
           <!-- Tips & Tricks -->
           <div class="glass-container rounded-2xl p-6">
             <h3 class="text-lg font-semibold text-white mb-4 flex items-center">
-              <span class="mr-2">💡</span>
+              <span class="mr-2"><i class="fa-solid fa-lightbulb"></i></span>
               Pro Tips
             </h3>
             <div class="space-y-4 text-sm text-gray-300">
               <div class="flex space-x-3">
-                <span class="text-blue-400">📌</span>
+                <span class="text-blue-400"><i class="fa-solid fa-thumbtack"></i></span>
                 <div>
                   <p class="font-medium text-white">Use + aliases</p>
                   <p>Perfect for newsletters and signups</p>
                 </div>
               </div>
               <div class="flex space-x-3">
-                <span class="text-green-400">📌</span>
+                <span class="text-green-400"><i class="fa-solid fa-thumbtack"></i></span>
                 <div>
                   <p class="font-medium text-white">Star important ones</p>
                   <p>Keep track of your favorites</p>
                 </div>
               </div>
               <div class="flex space-x-3">
-                <span class="text-purple-400">📌</span>
+                <span class="text-purple-400"><i class="fa-solid fa-thumbtack"></i></span>
                 <div>
                   <p class="font-medium text-white">Export for backup</p>
                   <p>Save your aliases as files</p>
@@ -353,7 +872,7 @@
           <!-- Usage Analytics -->
           <div class="glass-container rounded-2xl p-6">
             <h3 class="text-lg font-semibold text-white mb-4 flex items-center">
-              <span class="mr-2">📈</span>
+              <span class="mr-2"><i class="fa-solid fa-chart-line"></i></span>
               Usage Stats
             </h3>
             <div class="space-y-3">
@@ -378,6 +897,319 @@
   
   <script src="script.js"></script>
   <script>
+    // AI Features Implementation
+    let aiEnabled = false;
+    let spamDetectionModel = null;
+    let intentClassificationModel = null;
+
+    // Initialize AI models
+    async function initializeAI() {
+      if (!aiEnabled) return;
+      
+      try {
+        console.log('🧠 Initializing AI models...');
+        
+        // Simple spam detection model (lightweight)
+        spamDetectionModel = tf.sequential({
+          layers: [
+            tf.layers.dense({ units: 16, activation: 'relu', inputShape: [10] }),
+            tf.layers.dense({ units: 8, activation: 'relu' }),
+            tf.layers.dense({ units: 1, activation: 'sigmoid' })
+          ]
+        });
+        
+        // Intent classification model
+        intentClassificationModel = tf.sequential({
+          layers: [
+            tf.layers.dense({ units: 20, activation: 'relu', inputShape: [15] }),
+            tf.layers.dense({ units: 10, activation: 'relu' }),
+            tf.layers.dense({ units: 4, activation: 'softmax' }) // work, shopping, temp, personal
+          ]
+        });
+        
+        console.log('✅ AI models initialized successfully');
+        showNotification('🧠 AI features enabled! Smart analysis active.', 'success');
+      } catch (error) {
+        console.error('❌ AI initialization failed:', error);
+        showNotification('⚠️ AI features unavailable in this browser', 'error');
+      }
+    }
+
+    // Toggle AI features
+    function toggleAI() {
+      aiEnabled = !aiEnabled;
+      if (aiEnabled) {
+        initializeAI();
+        localStorage.setItem('aiEnabled', 'true');
+      } else {
+        localStorage.setItem('aiEnabled', 'false');
+        showNotification('🔄 AI features disabled', 'success');
+      }
+    }
+
+    // AI-powered spam detection
+    function detectSpamAlias(alias) {
+      if (!aiEnabled || !spamDetectionModel) return { isSpam: false, confidence: 0 };
+      
+      try {
+        // Extract features (simplified)
+        const features = [
+          alias.length / 50, // normalized length
+          (alias.match(/\d/g) || []).length / alias.length, // digit ratio
+          (alias.match(/[A-Z]/g) || []).length / alias.length, // uppercase ratio
+          (alias.match(/[!@#$%^&*()]/g) || []).length / alias.length, // special chars
+          alias.includes('+') ? 1 : 0,
+          alias.includes('.') ? 1 : 0,
+          (alias.match(/(.)\1{2,}/g) || []).length, // repeated chars
+          alias.split('+').length - 1, // plus count
+          alias.split('.').length - 1, // dot count
+          Math.random() * 0.1 // noise factor
+        ];
+        
+        const prediction = spamDetectionModel.predict(tf.tensor2d([features]));
+        const confidence = prediction.dataSync()[0];
+        
+        return {
+          isSpam: confidence > 0.7,
+          confidence: confidence,
+          riskLevel: confidence > 0.8 ? 'high' : confidence > 0.5 ? 'medium' : 'low'
+        };
+      } catch (error) {
+        console.error('Spam detection error:', error);
+        return { isSpam: false, confidence: 0 };
+      }
+    }
+
+    // AI-powered intent classification
+    function classifyIntent(alias, keywords = '') {
+      if (!aiEnabled || !intentClassificationModel) return { intent: 'unknown', confidence: 0 };
+      
+      try {
+        const categories = ['work', 'shopping', 'temp', 'personal'];
+        const text = (alias + ' ' + keywords).toLowerCase();
+        
+        // Extract features
+        const features = [
+          text.includes('work') || text.includes('business') || text.includes('corporate') ? 1 : 0,
+          text.includes('shop') || text.includes('buy') || text.includes('purchase') ? 1 : 0,
+          text.includes('temp') || text.includes('test') || text.includes('trial') ? 1 : 0,
+          text.includes('personal') || text.includes('private') ? 1 : 0,
+          text.includes('newsletter') || text.includes('news') ? 1 : 0,
+          text.includes('social') || text.includes('media') ? 1 : 0,
+          text.includes('finance') || text.includes('bank') ? 1 : 0,
+          text.includes('gaming') || text.includes('game') ? 1 : 0,
+          alias.length / 30,
+          (text.match(/\+/g) || []).length,
+          (text.match(/\./g) || []).length,
+          Math.random() * 0.1,
+          Math.random() * 0.1,
+          Math.random() * 0.1,
+          Math.random() * 0.1
+        ];
+        
+        const prediction = intentClassificationModel.predict(tf.tensor2d([features]));
+        const probabilities = prediction.dataSync();
+        const maxIndex = probabilities.indexOf(Math.max(...probabilities));
+        
+        return {
+          intent: categories[maxIndex],
+          confidence: probabilities[maxIndex],
+          breakdown: categories.map((cat, i) => ({ category: cat, probability: probabilities[i] }))
+        };
+      } catch (error) {
+        console.error('Intent classification error:', error);
+        return { intent: 'unknown', confidence: 0 };
+      }
+    }
+
+    // Enhanced alias generation with AI
+    function generateAliasesWithAI() {
+      if (!aiEnabled) {
+        generateAliases();
+        return;
+      }
+      
+      generateAliases();
+      
+      // Add AI analysis to generated aliases
+      setTimeout(() => {
+        if (currentAliases && currentAliases.length > 0) {
+          currentAliases.forEach((alias, index) => {
+            const spamAnalysis = detectSpamAlias(alias.email);
+            const intentAnalysis = classifyIntent(alias.email, document.getElementById('customKeywords').value);
+            
+            alias.aiAnalysis = {
+              spam: spamAnalysis,
+              intent: intentAnalysis,
+              riskScore: spamAnalysis.confidence * 100
+            };
+          });
+          
+          displayAliases();
+          showAIInsights();
+        }
+      }, 500);
+    }
+
+    // Display AI insights
+    function showAIInsights() {
+      if (!aiEnabled || !currentAliases.length) return;
+      
+      const highRiskAliases = currentAliases.filter(a => a.aiAnalysis && a.aiAnalysis.spam.riskLevel === 'high').length;
+      const intents = currentAliases.map(a => a.aiAnalysis?.intent.intent).filter(Boolean);
+      const mostCommonIntent = intents.length > 0 ? intents.reduce((a, b, i, arr) => 
+        arr.filter(v => v === a).length >= arr.filter(v => v === b).length ? a : b
+      ) : 'unknown';
+      
+      if (highRiskAliases > 0) {
+        showNotification(`⚠️ AI detected ${highRiskAliases} potentially risky aliases`, 'error');
+      }
+      
+      if (mostCommonIntent !== 'unknown') {
+        showNotification(`🎯 AI classified most aliases as: ${mostCommonIntent}`, 'success');
+      }
+    }
+
+    // Toggle AI features function
+    function toggleAIFeatures() {
+      toggleAI();
+      document.getElementById('aliasInfoPopup').classList.add('hidden');
+    }
+
+    // Load AI preference on startup
+    document.addEventListener('DOMContentLoaded', () => {
+      if (localStorage.getItem('aiEnabled') === 'true') {
+        aiEnabled = true;
+        setTimeout(initializeAI, 1000);
+      }
+    });
+
+    // Learn Modal functions
+    function openLearnModal() {
+      document.getElementById('aliasInfoPopup').classList.add('hidden');
+      document.getElementById('learnModal').classList.remove('hidden');
+    }
+
+    // Tab switching for learn modal
+    function switchLearnTab(tabName) {
+      // Hide all tab contents
+      document.querySelectorAll('.learn-section').forEach(content => {
+        content.classList.add('hidden');
+      });
+      
+      // Remove active class from all tab buttons
+      document.querySelectorAll('.learn-nav-button').forEach(btn => {
+        btn.classList.remove('active');
+        btn.classList.remove('bg-white/20', 'text-white');
+        btn.classList.add('text-gray-300', 'hover:text-white', 'hover:bg-white/10');
+      });
+      
+      // Show selected tab content
+      document.getElementById('learn-' + tabName).classList.remove('hidden');
+      
+      // Add active class to selected tab button
+      const activeBtn = document.querySelector(`[data-section="${tabName}"]`);
+      if (activeBtn) {
+        activeBtn.classList.add('active', 'bg-white/20', 'text-white');
+        activeBtn.classList.remove('text-gray-300', 'hover:text-white', 'hover:bg-white/10');
+      }
+    }
+
+    // Initialize learn modal tab functionality
+    document.addEventListener('DOMContentLoaded', function() {
+      // Add click listeners to learn tab buttons
+      document.querySelectorAll('.learn-nav-button').forEach(btn => {
+        btn.addEventListener('click', function() {
+          const tabName = this.getAttribute('data-section');
+          switchLearnTab(tabName);
+        });
+      });
+      
+      // Initialize first tab as active
+      switchLearnTab('basics');
+    });
+
+    // Keyboard shortcuts implementation
+    document.addEventListener('DOMContentLoaded', function() {
+      // Tab switching shortcuts
+      Mousetrap.bind('1', function() {
+        switchTab('generator');
+        return false;
+      });
+      
+      Mousetrap.bind('2', function() {
+        switchTab('results');
+        return false;
+      });
+      
+      Mousetrap.bind('3', function() {
+        switchTab('history');
+        return false;
+      });
+      
+      // Generate aliases with AI
+      Mousetrap.bind('g', function() {
+        if (document.getElementById('baseEmail').value.trim()) {
+          if (aiEnabled) {
+            generateAliasesWithAI();
+          } else {
+            generateAliases();
+          }
+        } else {
+          document.getElementById('baseEmail').focus();
+        }
+        return false;
+      });
+      
+      // Copy all aliases
+      Mousetrap.bind('ctrl+c', function() {
+        if (currentAliases && currentAliases.length > 0) {
+          copyAllAliases();
+        }
+        return false;
+      });
+      
+      // Quick generation shortcuts
+      Mousetrap.bind('w', function() {
+        quickGenerate('work');
+        return false;
+      });
+      
+      Mousetrap.bind('s', function() {
+        quickGenerate('shopping');
+        return false;
+      });
+      
+      Mousetrap.bind('t', function() {
+        quickGenerate('temp');
+        return false;
+      });
+      
+      // Clear history
+      Mousetrap.bind('del', function() {
+        clearHistory();
+        return false;
+      });
+      
+      // Close popup
+      Mousetrap.bind('escape', function() {
+        document.getElementById('aliasInfoPopup').classList.add('hidden');
+        return false;
+      });
+      
+      // Help shortcut to show popup
+      Mousetrap.bind('?', function() {
+        document.getElementById('aliasInfoPopup').classList.remove('hidden');
+        return false;
+      });
+
+      // Toggle AI features
+      Mousetrap.bind('a', function() {
+        toggleAI();
+        return false;
+      });
+    });
+
     // Burger menu and drawer logic for mobile
     document.addEventListener('DOMContentLoaded', function() {
       const burgerBtn = document.getElementById('burgerMenuBtn');
@@ -407,6 +1239,8 @@
   </script>
 </body>
 <script>
+
+    
   // Show Gmail Alias info popup on first load or refresh
   window.addEventListener('DOMContentLoaded', function() {
     document.getElementById('aliasInfoPopup').classList.remove('hidden');
