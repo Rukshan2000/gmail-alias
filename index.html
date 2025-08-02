@@ -44,8 +44,8 @@
         <p class="text-gray-300 text-lg lg:text-xl">Create unlimited email aliases for your Gmail account with advanced features</p>
       </div>
 
-      <!-- Tab Navigation -->
-      <div class="flex justify-center mb-8">
+      <!-- Tab Navigation (Desktop) -->
+      <div class="flex justify-center mb-8 hidden md:flex">
         <div class="bg-white/5 backdrop-blur-lg p-2 rounded-2xl border border-white/10">
           <button class="tab-button px-8 py-3 rounded-xl font-medium text-white bg-gradient-to-r from-indigo-500 to-purple-500 focus:outline-none shadow-lg" data-tab="generator">
             🚀 Generator
@@ -58,6 +58,33 @@
           </button>
         </div>
       </div>
+
+      <!-- Tab Navigation (Mobile Burger) -->
+      <div class="md:hidden flex justify-between items-center mb-6 px-2">
+        <div class="text-2xl font-bold text-white">Gmail Alias</div>
+        <button id="burgerMenuBtn" class="text-white text-3xl focus:outline-none" aria-label="Open menu">
+          <span>&#9776;</span>
+        </button>
+      </div>
+      <!-- Drawer for mobile tabs -->
+      <div id="mobileDrawer" class="fixed top-0 left-0 w-64 h-full bg-gradient-to-br from-indigo-800 to-purple-900 z-50 shadow-2xl transform -translate-x-full transition-transform duration-300 md:hidden">
+        <div class="flex items-center justify-between px-6 py-4 border-b border-white/10">
+          <span class="text-xl font-bold text-white">Menu</span>
+          <button id="closeDrawerBtn" class="text-white text-2xl focus:outline-none" aria-label="Close menu">&times;</button>
+        </div>
+        <div class="flex flex-col mt-4 space-y-2 px-6">
+          <button class="tab-button text-left px-4 py-3 rounded-xl font-medium text-white bg-gradient-to-r from-indigo-500 to-purple-500 focus:outline-none shadow-lg" data-tab="generator">
+            🚀 Generator
+          </button>
+          <button class="tab-button text-left px-4 py-3 rounded-xl font-medium text-white bg-transparent hover:bg-white/10 focus:outline-none" data-tab="results">
+            📊 Results
+          </button>
+          <button class="tab-button text-left px-4 py-3 rounded-xl font-medium text-white bg-transparent hover:bg-white/10 focus:outline-none" data-tab="history">
+            📚 History
+          </button>
+        </div>
+      </div>
+      <div id="drawerOverlay" class="fixed inset-0 bg-black/40 z-40 hidden md:hidden"></div>
 
       <!-- Grid Layout -->
       <div class="grid-layout">
@@ -350,6 +377,34 @@
   </div>
   
   <script src="script.js"></script>
+  <script>
+    // Burger menu and drawer logic for mobile
+    document.addEventListener('DOMContentLoaded', function() {
+      const burgerBtn = document.getElementById('burgerMenuBtn');
+      const drawer = document.getElementById('mobileDrawer');
+      const closeBtn = document.getElementById('closeDrawerBtn');
+      const overlay = document.getElementById('drawerOverlay');
+      const tabButtons = drawer.querySelectorAll('.tab-button');
+
+      function openDrawer() {
+        drawer.classList.remove('-translate-x-full');
+        overlay.classList.remove('hidden');
+      }
+      function closeDrawer() {
+        drawer.classList.add('-translate-x-full');
+        overlay.classList.add('hidden');
+      }
+      burgerBtn && burgerBtn.addEventListener('click', openDrawer);
+      closeBtn && closeBtn.addEventListener('click', closeDrawer);
+      overlay && overlay.addEventListener('click', closeDrawer);
+
+      tabButtons.forEach(btn => {
+        btn.addEventListener('click', () => {
+          closeDrawer();
+        });
+      });
+    });
+  </script>
 </body>
 <script>
   // Show Gmail Alias info popup on first load or refresh

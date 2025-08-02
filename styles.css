@@ -272,6 +272,8 @@ body {
   background: rgba(99, 102, 241, 0.7);
 }
 
+
+
 .grid-layout {
   display: grid;
   grid-template-columns: 1fr 2fr 1fr;
@@ -279,10 +281,103 @@ body {
   min-height: calc(100vh - 200px);
 }
 
+/* Hide desktop tab navigation on mobile, show burger */
+@media (max-width: 767px) {
+  .md\\:flex { display: none !important; }
+  .md\\:hidden { display: flex !important; }
+}
+
+@media (min-width: 768px) {
+  .md\\:flex { display: flex !important; }
+  .md\\:hidden { display: none !important; }
+}
+
 @media (max-width: 1024px) {
   .grid-layout {
     grid-template-columns: 1fr;
     gap: 1rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .grid-layout {
+    display: block;
+    gap: 0;
+    padding: 0 0.5rem;
+  }
+  /* Move sidebars below main content */
+  .grid-layout > div:first-child,
+  .grid-layout > div:last-child {
+    width: 100%;
+    max-width: 100vw;
+    margin: 0 auto 0.5rem auto;
+    order: 2;
+  }
+  .grid-layout > div:nth-child(2) {
+    order: 1;
+  }
+  .glass-container, .stats-card, .feature-card {
+    padding: 1rem !important;
+    border-radius: 0.75rem !important;
+  }
+  .tab-button, .filter-button, .glass-button {
+    font-size: 0.95rem;
+    padding: 0.5rem 0.8rem;
+  }
+  .glass-button, .glass-secondary, .glass-orange {
+    min-width: 0;
+    width: 100%;
+    font-size: 1rem;
+    padding: 0.8rem 0.5rem;
+  }
+  .stats-card, .feature-card {
+    margin-bottom: 0.5rem;
+  }
+  .floating-orb {
+    display: none;
+  }
+  .scroll-container {
+    max-height: 220px;
+  }
+  .alias-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+    padding: 1rem 0.5rem;
+  }
+  .history-item {
+    padding: 1rem 0.5rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .glass-container, .stats-card, .feature-card {
+    padding: 0.5rem !important;
+    border-radius: 0.5rem !important;
+  }
+  .tab-button, .filter-button, .glass-button {
+    font-size: 0.85rem;
+    padding: 0.4rem 0.5rem;
+  }
+  .glass-button, .glass-secondary, .glass-orange {
+    font-size: 0.95rem;
+    padding: 0.7rem 0.3rem;
+  }
+  .stats-card, .feature-card {
+    margin-bottom: 0.3rem;
+  }
+  .scroll-container {
+    max-height: 140px;
+  }
+  .alias-item {
+    font-size: 0.95rem;
+    padding: 0.7rem 0.3rem;
+  }
+  .history-item {
+    padding: 0.7rem 0.3rem;
+  }
+  h1, h2, h3, h4 {
+    font-size: 1.1em !important;
   }
 }
 
